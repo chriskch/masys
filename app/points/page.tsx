@@ -40,7 +40,7 @@ export default function PointsRulesPage() {
         </h1>
         <p className="text-sm text-slate-500">
           Hier findest du alle Aktionen, die Punkte bringen. Die Regeln greifen
-          automatisch beim Erfassen einer Fahrt und können dort als Parameter
+          automatisch beim Erfassen eines Törns und können dort als Parameter
           ausgewählt werden.
         </p>
       </header>
@@ -50,7 +50,7 @@ export default function PointsRulesPage() {
           Distanzbasierte Punkte
         </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Trage in der Fahrterfassung deine Kilometer nach Gewässertyp ein. Das
+          Trage in der Törn-Erfassung deine Kilometer nach Gewässertyp ein. Das
           System berechnet die Punkte automatisch.
         </p>
         <div className="mt-4 divide-y divide-slate-200">

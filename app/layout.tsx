@@ -21,7 +21,7 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "MASYS Logbook",
   description:
-    "Digitale Segel-Logbuch-App für Fahrtenplanung, Tracking und Ranking.",
+    "Digitale Segel-Logbuch-App für Törnplanung, Tracking und Ranking.",
 };
 
 export default function RootLayout({

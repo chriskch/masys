@@ -74,8 +74,7 @@ export default function RankingPage() {
                 ? "Quartalswertung"
                 : "Gesamtwertung"
             }
-            severity="info"
-            className="w-fit"
+            className="w-fit !border-none !bg-[rgba(1,168,10,0.12)] !text-[var(--color-primary)]"
           />
         </div>
       </Card>
@@ -90,7 +89,7 @@ export default function RankingPage() {
           scrollHeight="400px"
           size="small"
           rowClassName={(entry: RankingEntry) =>
-            entry.isYou ? "bg-sky-50 text-slate-900" : ""
+            entry.isYou ? "bg-[rgba(1,168,10,0.08)] text-slate-900" : ""
           }
         >
           <Column field="rank" header="#" style={{ width: "3rem" }} />

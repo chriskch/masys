@@ -31,21 +31,21 @@ export type BonusRule = {
 export const DISTANCE_RULES: DistanceRule[] = [
   {
     id: "inland",
-    title: "Binnenfahrt",
+    title: "Binnentörn",
     description:
       "Jeder gesegelte Kilometer auf Binnengewässern, inklusive gestakt, getreidelt oder gepaddelt.",
     pointsPerKm: 1,
   },
   {
     id: "inlandOptimist",
-    title: "Binnenfahrt im Optimist",
+    title: "Binnentörn im Optimist",
     description:
       "Jeder gesegelte Kilometer mit einem Optimisten auf Binnengewässern.",
     pointsPerKm: 2,
   },
   {
     id: "sea",
-    title: "Seefahrt",
+    title: "Seetörn",
     description: "Jeder gesegelte Kilometer auf See.",
     pointsPerKm: 1,
   },
@@ -61,7 +61,7 @@ export const DISTANCE_RULES: DistanceRule[] = [
 export const BONUS_RULES: BonusRule[] = [
   {
     id: "engineKm",
-    title: "Motorfahrt",
+    title: "Motortörn",
     description:
       "Gefahrene Kilometer unter Motor, sowohl im Binnenbereich als auch auf See.",
     points: { perKm: 0.2 },
@@ -113,9 +113,9 @@ export const BONUS_RULES: BonusRule[] = [
   },
   {
     id: "communityEvent",
-    title: "Gemeinschaftsfahrt",
+    title: "Gemeinschaftstörn",
     description:
-      "Teilnahme an vom Verein organisierten Gemeinschaftsfahrten (mind. 5 Boote). Punkte pro Tag.",
+      "Teilnahme an vom Verein organisierten Gemeinschaftstörns (mind. 5 Boote). Punkte pro Tag.",
     points: 20,
     unitLabel: "Tage",
     category: "voyage",

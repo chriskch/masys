@@ -4,15 +4,34 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "primereact/button";
 import { Card } from "primereact/card";
-import { ProgressBar } from "primereact/progressbar";
 import { Avatar } from "primereact/avatar";
 import { Tag } from "primereact/tag";
 
 const stats = [
-  { label: "Gesamtpunkte", value: "1.280", icon: "pi pi-star", accent: "bg-orange-100 text-orange-500" },
-  { label: "Seemeilen", value: "642 km", icon: "pi pi-compass", accent: "bg-sky-100 text-sky-600" },
-  { label: "Segelstunden", value: "84 h", icon: "pi pi-clock", accent: "bg-indigo-100 text-indigo-600" },
-  { label: "Crewtage", value: "36", icon: "pi pi-users", accent: "bg-emerald-100 text-emerald-600" },
+  {
+    label: "Gesamtpunkte",
+    value: "1.280",
+    icon: "pi pi-star",
+    accent: "bg-[rgba(1,168,10,0.15)] text-[var(--color-primary)]",
+  },
+  {
+    label: "Seemeilen",
+    value: "642 km",
+    icon: "pi pi-compass",
+    accent: "bg-[rgba(1,168,93,0.15)] text-[var(--color-primary-strong)]",
+  },
+  {
+    label: "Segelstunden",
+    value: "84 h",
+    icon: "pi pi-clock",
+    accent: "bg-[rgba(1,159,168,0.15)] text-[#019fa8]",
+  },
+  {
+    label: "Crewtage",
+    value: "36",
+    icon: "pi pi-users",
+    accent: "bg-[rgba(94,1,168,0.15)] text-[#5e01a8]",
+  },
 ];
 
 const recentTrips = [
@@ -34,18 +53,12 @@ const recentTrips = [
   },
   {
     id: "TR-1091",
-    title: "Küstenfahrt Rügen",
+    title: "Küstentörn Rügen",
     date: "07. Juni 2024",
     distance: "38,6 km",
     duration: "6 h 05 min",
     status: "Abgeschlossen",
   },
-];
-
-const progressGoals = [
-  { title: "Monatsziel km", current: 64, target: 90 },
-  { title: "Crew Sessions", current: 6, target: 8 },
-  { title: "Punkte Mission", current: 1280, target: 1500 },
 ];
 
 const leaderboardPreview = [
@@ -69,13 +82,13 @@ export default function Home() {
           </h1>
           <p className="mt-2 max-w-xl text-sm text-slate-500">
             Behalte deine Fortschritte im Blick und starte in weniger als zwei
-            Klicks deine nächste Fahrt.
+            Klicks deinen nächsten Törn.
           </p>
         </div>
         <Button
-          label="Neue Fahrt starten"
+          label="Neuen Törn starten"
           icon="pi pi-plus"
-          className="!w-full !justify-center !rounded-full !border-none !bg-sky-600 !px-5 !py-3 !text-base !font-semibold !text-white shadow-md hover:!bg-sky-700 sm:!w-auto"
+          className="!w-full !justify-center !rounded-full !border-none !bg-[var(--color-primary)] !px-5 !py-3 !text-base !font-semibold !text-white shadow-md hover:!bg-[var(--color-primary-strong)] sm:!w-auto"
           onClick={() => router.push("/new-trip")}
         />
       </header>
@@ -102,15 +115,15 @@ export default function Home() {
         ))}
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+      <section className="grid gap-6">
         <Card className="border-none !bg-white shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold text-slate-900">
-              Letzte Fahrten
+              Letzte Törns
             </h2>
             <Link
               href="/trips"
-              className="text-sm font-medium text-sky-600 hover:text-sky-700"
+              className="text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-strong)]"
             >
               Alle anzeigen
             </Link>
@@ -120,7 +133,7 @@ export default function Home() {
               <Link
                 key={trip.id}
                 href={`/trips/${trip.id}`}
-                className="flex items-start justify-between rounded-xl border border-slate-200 px-4 py-3 transition-colors hover:border-sky-200 hover:bg-sky-50"
+                className="flex items-start justify-between rounded-xl border border-slate-200 px-4 py-3 transition-colors hover:border-[rgba(1,168,10,0.35)] hover:bg-[rgba(1,168,10,0.08)]"
               >
                 <div>
                   <p className="text-sm font-semibold text-slate-900">
@@ -128,12 +141,12 @@ export default function Home() {
                   </p>
                   <p className="text-xs text-slate-500">{trip.date}</p>
                   <div className="mt-2 flex items-center gap-4 text-xs text-slate-500">
-                    <span className="flex items-center gap-2">
-                      <i className="pi pi-route text-sky-500" aria-hidden />
+                <span className="flex items-center gap-2">
+                  <i className="pi pi-route text-[var(--color-primary-strong)]" aria-hidden />
                       {trip.distance}
                     </span>
                     <span className="flex items-center gap-2">
-                      <i className="pi pi-clock text-indigo-500" aria-hidden />
+                      <i className="pi pi-clock text-[var(--color-accent-3)]" aria-hidden />
                       {trip.duration}
                     </span>
                   </div>
@@ -144,35 +157,6 @@ export default function Home() {
                 />
               </Link>
             ))}
-          </div>
-        </Card>
-
-        <Card className="border-none !bg-white shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-900">
-            Fortschrittsziele
-          </h2>
-          <div className="mt-6 flex flex-col gap-6">
-            {progressGoals.map((goal) => {
-              const percentage = Math.min(
-                100,
-                Math.round((goal.current / goal.target) * 100),
-              );
-              return (
-                <div key={goal.title}>
-                  <p className="text-sm font-medium text-slate-700">
-                    {goal.title}
-                    <span className="ml-2 text-xs text-slate-400">
-                      {goal.current} / {goal.target}
-                    </span>
-                  </p>
-                  <ProgressBar
-                    value={percentage}
-                    showValue
-                    className="mt-2"
-                  />
-                </div>
-              );
-            })}
           </div>
         </Card>
       </section>
@@ -189,7 +173,7 @@ export default function Home() {
           </div>
           <Link
             href="/ranking"
-            className="text-sm font-medium text-sky-600 hover:text-sky-700"
+            className="text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-strong)]"
           >
             Zur Rangliste
           </Link>
@@ -201,7 +185,7 @@ export default function Home() {
               key={entry.rank}
               className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm transition-colors ${
                 entry.highlight
-                  ? "border-sky-200 bg-sky-50 text-slate-900"
+                  ? "border-[rgba(1,168,10,0.35)] bg-[rgba(1,168,10,0.08)] text-slate-900"
                   : "border-slate-200 bg-white text-slate-600"
               }`}
             >
@@ -216,7 +200,7 @@ export default function Home() {
                     .join("")
                     .slice(0, 2)}
                   className={`!bg-slate-200 !text-slate-700 ${
-                    entry.highlight ? "!bg-sky-500 !text-white" : ""
+                    entry.highlight ? "!bg-[var(--color-primary)] !text-white" : ""
                   }`}
                 />
                 <div>
@@ -226,11 +210,11 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-6 text-xs text-slate-500">
                 <span className="flex items-center gap-2">
-                  <i className="pi pi-star text-orange-400" aria-hidden />
+                  <i className="pi pi-star text-[var(--color-primary)]" aria-hidden />
                   {entry.points} Punkte
                 </span>
                 <span className="flex items-center gap-2">
-                  <i className="pi pi-route text-sky-400" aria-hidden />
+                  <i className="pi pi-route text-[var(--color-accent-2)]" aria-hidden />
                   {entry.distance}
                 </span>
               </div>

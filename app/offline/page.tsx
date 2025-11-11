@@ -20,10 +20,10 @@ export default function OfflinePage() {
           Offline
         </p>
         <h1 className="text-3xl font-semibold text-slate-900">
-          Offline gespeicherte Fahrten & Sync
+          Offline gespeicherte Törns & Sync
         </h1>
         <p className="text-sm text-slate-500">
-          Du bist aktuell offline. Deine letzten Fahrten werden lokal gesichert
+          Du bist aktuell offline. Deine letzten Törns werden lokal gesichert
           und können bei Netzverbindung synchronisiert werden.
         </p>
       </header>
@@ -44,7 +44,7 @@ export default function OfflinePage() {
           <Button
             label={syncing ? "Synchronisiere..." : "Jetzt synchronisieren"}
             icon="pi pi-sync"
-            className="!w-full !rounded-full !border-none !bg-sky-600 !px-5 !py-3 !font-semibold !text-white hover:!bg-sky-700 sm:!w-auto"
+            className="!w-full !rounded-full !border-none !bg-[var(--color-primary)] !px-5 !py-3 !font-semibold !text-white hover:!bg-[var(--color-primary-strong)] sm:!w-auto"
             disabled={syncing}
             onClick={() => {
               setSyncing(true);
@@ -56,7 +56,7 @@ export default function OfflinePage() {
 
       <Card className="border-none !bg-white shadow-sm">
         <h2 className="text-2xl font-semibold text-slate-900">
-          Lokale Fahrten
+          Lokale Törns
         </h2>
         <div className="mt-4 flex flex-col gap-3">
           {queuedTrips.map((trip) => (

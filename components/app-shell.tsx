@@ -18,8 +18,8 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/", icon: "pi pi-home", label: "Dashboard" },
-  { href: "/trips", icon: "pi pi-compass", label: "Fahrten" },
-  { href: "/new-trip", icon: "pi pi-plus-circle", label: "Fahrt starten" },
+  { href: "/trips", icon: "pi pi-compass", label: "Törns" },
+  { href: "/new-trip", icon: "pi pi-plus-circle", label: "Törn starten" },
   { href: "/ranking", icon: "pi pi-chart-line", label: "Rangliste" },
   { href: "/profile", icon: "pi pi-user", label: "Profil" },
 ];
@@ -82,13 +82,15 @@ export function AppShell({ children }: AppShellProps) {
                   href={item.href}
                   className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
                     active
-                      ? "bg-sky-50 text-sky-700"
+                      ? "bg-[rgba(1,168,10,0.12)] text-[var(--color-primary)]"
                       : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >
                   <i
                     className={`${item.icon} text-lg ${
-                      active ? "text-sky-600" : "text-slate-500"
+                      active
+                        ? "text-[var(--color-primary)]"
+                        : "text-slate-500"
                     }`}
                     aria-hidden
                   />
@@ -99,9 +101,9 @@ export function AppShell({ children }: AppShellProps) {
           </nav>
 
           <Button
-            label="Neue Fahrt starten"
+            label="Neuen Törn starten"
             icon="pi pi-plus"
-            className="!mt-6 !rounded-full !border-none !bg-sky-600 !px-5 !py-3 !text-base !font-semibold !text-white !shadow-lg hover:!bg-sky-700"
+            className="!mt-6 !rounded-full !border-none !bg-[var(--color-primary)] !px-5 !py-3 !text-base !font-semibold !text-white !shadow-lg hover:!bg-[var(--color-primary-strong)]"
             onClick={() => router.push("/new-trip")}
           />
         </aside>
@@ -129,12 +131,16 @@ export function AppShell({ children }: AppShellProps) {
                   key={item.href}
                   href={item.href}
                   className={`flex flex-col items-center gap-1 rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
-                    active ? "text-sky-600" : "text-slate-500"
+                    active
+                      ? "text-[var(--color-primary)]"
+                      : "text-slate-500"
                   }`}
                 >
                   <i
                     className={`${item.icon} text-lg ${
-                      active ? "text-sky-600" : "text-slate-400"
+                      active
+                        ? "text-[var(--color-primary)]"
+                        : "text-slate-400"
                     }`}
                     aria-hidden
                   />
@@ -147,8 +153,8 @@ export function AppShell({ children }: AppShellProps) {
           <Button
             icon="pi pi-plus"
             rounded
-            aria-label="Fahrt starten"
-            className="!fixed !bottom-20 !left-1/2 !z-40 !h-16 !w-16 !-translate-x-1/2 !rounded-full !border-none !bg-sky-600 !text-xl !text-white !shadow-2xl hover:!bg-sky-700 md:!hidden"
+            aria-label="Törn starten"
+            className="!fixed !bottom-20 !left-1/2 !z-40 !h-16 !w-16 !-translate-x-1/2 !rounded-full !border-none !bg-[var(--color-primary)] !text-xl !text-white !shadow-2xl hover:!bg-[var(--color-primary-strong)] md:!hidden"
             onClick={() => router.push("/new-trip")}
           />
         </>

@@ -72,7 +72,7 @@ export default function AuthPage() {
             type="submit"
             label="Anmelden"
             icon="pi pi-sign-in"
-            className="!mt-2 !w-full !rounded-full !border-none !bg-sky-600 !px-5 !py-3 !text-base !font-semibold !text-white hover:!bg-sky-700"
+            className="!mt-2 !w-full !rounded-full !border-none !bg-[var(--color-primary)] !px-5 !py-3 !text-base !font-semibold !text-white hover:!bg-[var(--color-primary-strong)]"
           />
         </form>
 
@@ -86,13 +86,13 @@ export default function AuthPage() {
           <Button
             label="Demo-Login"
             icon="pi pi-play"
-            className="!rounded-full !border-none !bg-emerald-500 !px-5 !py-3 !font-semibold !text-white hover:!bg-emerald-600"
+            className="!rounded-full !border-none !bg-[var(--color-accent-2)] !px-5 !py-3 !font-semibold !text-white hover:!bg-[var(--color-accent-3)]"
             onClick={() => router.push("/")}
           />
           <Button
             label="Als Gast fortfahren"
             icon="pi pi-compass"
-            className="!rounded-full !border border-slate-200 !bg-white !px-5 !py-3 !font-semibold !text-slate-700 hover:!border-slate-300 hover:!bg-slate-50"
+            className="!rounded-full !border !border-[rgba(1,168,10,0.4)] !bg-white !px-5 !py-3 !font-semibold !text-[var(--color-primary)] hover:!border-[rgba(1,168,10,0.6)] hover:!bg-[rgba(1,168,10,0.05)]"
             onClick={() => router.push("/")}
           />
         </div>

@@ -126,17 +126,17 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
     return (
       <Card className="border-none !bg-white shadow-sm">
         <h1 className="text-2xl font-semibold text-slate-900">
-          Fahrt nicht gefunden
+          Törn nicht gefunden
         </h1>
         <p className="mt-2 text-sm text-slate-500">
-          Die gesuchte Fahrt existiert nicht oder wurde noch nicht synchronisiert.
+          Der gesuchte Törn existiert nicht oder wurde noch nicht synchronisiert.
         </p>
         <Link
           href="/trips"
-          className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-sky-600"
+          className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]"
         >
           <i className="pi pi-arrow-left" aria-hidden />
-          Zur Fahrtenliste
+          Zur Törnliste
         </Link>
       </Card>
     );
@@ -147,7 +147,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
       <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <p className="text-sm uppercase tracking-[0.35em] text-slate-400">
-            Fahrt #{trip.id}
+            Törn #{trip.id}
           </p>
           <h1 className="mt-2 text-3xl font-semibold text-slate-900">
             {trip.title}
@@ -162,9 +162,9 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
             onClick={() => router.push(`/trips/${trip.id}/edit`)}
           />
           <Button
-            label="Fahrt löschen"
+            label="Törn löschen"
             icon="pi pi-trash"
-            className="!rounded-full !border-none !bg-rose-500 !px-5 !py-3 !text-white hover:!bg-rose-600"
+            className="!rounded-full !border-none !bg-[var(--color-accent-5)] !px-5 !py-3 !text-white hover:!bg-[var(--color-accent-4)]"
             onClick={() => router.push("/trips")}
           />
         </div>
@@ -175,15 +175,15 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3 text-sm text-slate-500">
               <span className="flex items-center gap-2">
-                <i className="pi pi-map-marker text-sky-500" aria-hidden />
+                <i className="pi pi-map-marker text-[var(--color-primary-strong)]" aria-hidden />
                 {trip.start} → {trip.destination}
               </span>
               <span className="flex items-center gap-2">
-                <i className="pi pi-route text-indigo-500" aria-hidden />
+                <i className="pi pi-route text-[var(--color-accent-2)]" aria-hidden />
                 {trip.distance}
               </span>
               <span className="flex items-center gap-2">
-                <i className="pi pi-clock text-emerald-500" aria-hidden />
+                <i className="pi pi-clock text-[var(--color-primary)]" aria-hidden />
                 {trip.duration}
               </span>
             </div>
@@ -193,7 +193,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
             />
           </div>
 
-          <div className="mt-6 rounded-2xl bg-gradient-to-br from-sky-200 via-white to-slate-200 p-6 text-center text-sm text-slate-600 shadow-inner">
+          <div className="mt-6 rounded-2xl bg-gradient-to-br from-[rgba(1,168,10,0.15)] via-white to-slate-200 p-6 text-center text-sm text-slate-600 shadow-inner">
             <p className="font-medium text-slate-700">
               Kartenansicht Platzhalter
             </p>
@@ -290,7 +290,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
               </p>
               <p className="flex items-center gap-2">
                 <i className="pi pi-share-alt" aria-hidden />
-                Fahrt als PDF oder Link teilen
+                Törn als PDF oder Link teilen
               </p>
               <p className="flex items-center gap-2">
                 <i className="pi pi-sync" aria-hidden />
