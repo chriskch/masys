@@ -9,26 +9,19 @@ import { ToggleButton } from "primereact/togglebutton";
 import { Checkbox } from "primereact/checkbox";
 import { Dialog } from "primereact/dialog";
 import { AutoComplete } from "primereact/autocomplete";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  useLogbookStore,
   formatDurationMinutes,
-  trackingStore,
+  type AccountProfile,
   type GpsTrack,
-} from "../../lib/tracking-store";
+} from "../../lib/stores/logbook-store";
 
 const stats = [
   { label: "Gesamtpunkte", value: "1.280" },
   { label: "Distanz", value: "642 km" },
   { label: "Segelstunden", value: "84 h" },
   { label: "Törns dieses Jahr", value: "18" },
-];
-
-const ACCOUNT_DIRECTORY = [
-  { id: "account-001", name: "Nils Brenner", email: "nils@masys.app" },
-  { id: "account-002", name: "Mara Lenz", email: "mara.lenz@bsv.de" },
-  { id: "account-003", name: "Kim Albrecht", email: "kim.albrecht@masys.app" },
-  { id: "account-004", name: "Laura Vogt", email: "laura.vogt@bsv.de" },
-  { id: "account-005", name: "Tom Reimann", email: "tom.reimann@masys.app" },
 ];
 
 type AutoCompleteCompleteMethodParams = {
@@ -38,40 +31,30 @@ type AutoCompleteCompleteMethodParams = {
 
 export default function ProfilePage() {
   const router = useRouter();
+  const {
+    accounts,
+    tracks,
+    delegates,
+    addTrack,
+    removeTrack,
+    addDelegate,
+    updateDelegatePermissions,
+    removeDelegate,
+  } = useLogbookStore((state) => ({
+    accounts: state.accounts,
+    tracks: state.tracks,
+    delegates: state.delegates,
+    addTrack: state.addTrack,
+    removeTrack: state.removeTrack,
+    addDelegate: state.addDelegate,
+    updateDelegatePermissions: state.updateDelegatePermissions,
+    removeDelegate: state.removeDelegate,
+  }));
   const [offlineMode, setOfflineMode] = useState(true);
   const [unitMetric, setUnitMetric] = useState(true);
-  const tracks = useSyncExternalStore(
-    trackingStore.subscribe,
-    trackingStore.getSnapshot,
-    trackingStore.getServerSnapshot,
-  );
   const [trackingActive, setTrackingActive] = useState(false);
   const [trackingStart, setTrackingStart] = useState<Date | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [delegates, setDelegates] = useState<
-    {
-      id: string;
-      name: string;
-      email: string;
-      canRead: boolean;
-      canWrite: boolean;
-    }[]
-  >([
-    {
-      id: "delegate-1",
-      name: "Nils Brenner",
-      email: "nils@masys.app",
-      canRead: true,
-      canWrite: true,
-    },
-    {
-      id: "delegate-2",
-      name: "Mara Lenz",
-      email: "mara.lenz@bsv.de",
-      canRead: true,
-      canWrite: false,
-    },
-  ]);
   const [delegateForm, setDelegateForm] = useState({
     name: "",
     email: "",
@@ -80,11 +63,9 @@ export default function ProfilePage() {
   });
   const [delegateModalVisible, setDelegateModalVisible] = useState(false);
   const [delegateSearch, setDelegateSearch] = useState("");
-  const [accountSuggestions, setAccountSuggestions] = useState(
-    ACCOUNT_DIRECTORY,
-  );
+  const [accountSuggestions, setAccountSuggestions] = useState(accounts);
   const [selectedAccount, setSelectedAccount] =
-    useState<(typeof ACCOUNT_DIRECTORY)[number] | null>(null);
+    useState<AccountProfile | null>(null);
 
   useEffect(() => {
     if (!trackingActive || !trackingStart) {
@@ -101,6 +82,10 @@ export default function ProfilePage() {
       setDelegateForm((prev) => ({ ...prev, canRead: true }));
     }
   }, [delegateForm.canWrite, delegateForm.canRead]);
+
+  useEffect(() => {
+    setAccountSuggestions(accounts);
+  }, [accounts]);
 
   const simulatedDistanceKm = useMemo(() => {
     if (!trackingActive) {
@@ -150,7 +135,7 @@ export default function ProfilePage() {
       durationMinutes,
       distanceKm: simulatedDistanceKm > 0 ? simulatedDistanceKm : 0.2,
     };
-    trackingStore.addTrack(newTrack);
+    addTrack(newTrack);
     resetTracking();
   };
 
@@ -158,23 +143,10 @@ export default function ProfilePage() {
     if (!selectedAccount) {
       return;
     }
-    const payload = {
-      id: selectedAccount.id,
-      name: selectedAccount.name,
-      email: selectedAccount.email,
+    addDelegate({
+      accountId: selectedAccount.id,
       canRead: delegateForm.canRead,
       canWrite: delegateForm.canWrite,
-    };
-    setDelegates((prev) => {
-      const index = prev.findIndex(
-        (delegate) => delegate.email === payload.email,
-      );
-      if (index >= 0) {
-        const next = [...prev];
-        next[index] = { ...next[index], ...payload };
-        return next;
-      }
-      return [...prev, payload];
     });
     setDelegateForm({
       name: "",
@@ -184,18 +156,17 @@ export default function ProfilePage() {
     });
     setDelegateSearch("");
     setSelectedAccount(null);
-    setAccountSuggestions(ACCOUNT_DIRECTORY);
     setDelegateModalVisible(false);
   };
 
   const handleAccountSearch = (event: AutoCompleteCompleteMethodParams) => {
     const query = event.query.trim().toLowerCase();
     if (!query) {
-      setAccountSuggestions(ACCOUNT_DIRECTORY);
+      setAccountSuggestions(accounts);
       return;
     }
     setAccountSuggestions(
-      ACCOUNT_DIRECTORY.filter(
+      accounts.filter(
         (account) =>
           account.name.toLowerCase().includes(query) ||
           account.email.toLowerCase().includes(query),
@@ -203,7 +174,7 @@ export default function ProfilePage() {
     );
   };
 
-  const accountItemTemplate = (account: (typeof ACCOUNT_DIRECTORY)[number]) => (
+  const accountItemTemplate = (account: AccountProfile) => (
     <div className="flex flex-col">
       <span className="text-sm font-medium text-slate-900">{account.name}</span>
       <span className="text-xs text-slate-500">{account.email}</span>
@@ -215,24 +186,15 @@ export default function ProfilePage() {
     key: "canRead" | "canWrite",
     value: boolean,
   ) => {
-    setDelegates((prev) =>
-      prev.map((delegate) => {
-        if (delegate.id !== id) {
-          return delegate;
-        }
-        if (key === "canWrite" && value) {
-          return { ...delegate, canRead: true, canWrite: true };
-        }
-        if (key === "canRead" && !value) {
-          return { ...delegate, canRead: false, canWrite: false };
-        }
-        return { ...delegate, [key]: value };
-      }),
-    );
+    if (key === "canWrite") {
+      updateDelegatePermissions(id, { canWrite: value });
+    } else {
+      updateDelegatePermissions(id, { canRead: value });
+    }
   };
 
   const handleRemoveDelegate = (id: string) => {
-    setDelegates((prev) => prev.filter((delegate) => delegate.id !== id));
+    removeDelegate(id);
   };
 
   return (
@@ -309,7 +271,7 @@ export default function ProfilePage() {
                 setDelegateForm((prev) => ({ ...prev, name: "", email: "" }));
               }}
               onSelect={(e) => {
-                const account = e.value as (typeof ACCOUNT_DIRECTORY)[number];
+                const account = e.value as AccountProfile;
                 setSelectedAccount(account);
                 setDelegateSearch(account.name);
                 setDelegateForm((prev) => ({
@@ -401,7 +363,7 @@ export default function ProfilePage() {
                 setDelegateModalVisible(true);
                 setDelegateSearch("");
                 setSelectedAccount(null);
-                setAccountSuggestions(ACCOUNT_DIRECTORY);
+                setAccountSuggestions(accounts);
                 setDelegateForm((prev) => ({
                   ...prev,
                   name: "",
@@ -617,7 +579,7 @@ export default function ProfilePage() {
                       severity="secondary"
                       className="!text-slate-400 hover:!text-rose-500"
                       aria-label="Track löschen"
-                      onClick={() => trackingStore.removeTrack(track.id)}
+                      onClick={() => removeTrack(track.id)}
                     />
                   </div>
                 ))

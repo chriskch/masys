@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "primereact/button";
 import { Card } from "primereact/card";
@@ -19,9 +19,10 @@ import { MultiSelect } from "primereact/multiselect";
 import { AutoComplete } from "primereact/autocomplete";
 import { DISTANCE_RULES, BONUS_RULES } from "../../data/points-config";
 import {
+  useLogbookStore,
   formatDurationMinutes,
-  trackingStore,
-} from "../../lib/tracking-store";
+  type AccountProfile,
+} from "../../lib/stores/logbook-store";
 
 type CrewMember = {
   name: string;
@@ -79,109 +80,6 @@ const weatherOptions = [
   { label: "stark (6+ Bft)", value: "starker-wind" },
 ];
 
-type AccountProfile = {
-  id: string;
-  name: string;
-  email: string;
-  defaultRole: CrewMember["role"];
-  birthYear?: number;
-};
-
-const ACCOUNT_DIRECTORY: AccountProfile[] = [
-  {
-    id: "account-001",
-    name: "Nils Brenner",
-    email: "nils@masys.app",
-    defaultRole: "Co-Skipper",
-    birthYear: 1992,
-  },
-  {
-    id: "account-002",
-    name: "Mara Lenz",
-    email: "mara.lenz@bsv.de",
-    defaultRole: "Trainer",
-    birthYear: 1999,
-  },
-  {
-    id: "account-003",
-    name: "Kim Albrecht",
-    email: "kim.albrecht@masys.app",
-    defaultRole: "Crew",
-    birthYear: 2008,
-  },
-  {
-    id: "account-004",
-    name: "Luis Kramer",
-    email: "luis.kramer@masys.app",
-    defaultRole: "Crew",
-    birthYear: 2007,
-  },
-  {
-    id: "account-005",
-    name: "Sabine Köster",
-    email: "sabine.koester@bsv.de",
-    defaultRole: "Trainer",
-    birthYear: 1988,
-  },
-];
-
-type TrainingCrewGroup = {
-  id: string;
-  name: string;
-  description: string;
-  focus: string;
-  members: CrewMember[];
-};
-
-const TRAINING_GROUPS: TrainingCrewGroup[] = [
-  {
-    id: "youth-a",
-    name: "Jugend Team A",
-    description: "Regatta-Crew U18 · Schwerpunkt Spinnaker",
-    focus: "Spinnaker-Handling",
-    members: [
-      {
-        name: "Kim Albrecht",
-        role: "Crew",
-        isGuest: false,
-        birthYear: 2008,
-        accountId: "account-003",
-      },
-      {
-        name: "Luis Kramer",
-        role: "Crew",
-        isGuest: false,
-        birthYear: 2007,
-        accountId: "account-004",
-      },
-      {
-        name: "Mara Lenz",
-        role: "Trainer:in",
-        isGuest: false,
-        birthYear: 1999,
-        accountId: "account-002",
-      },
-    ],
-  },
-  {
-    id: "junior-basic",
-    name: "Junior Basics",
-    description: "Wochenkurs für Einsteiger:innen",
-    focus: "Grundlagen & Sicherheit",
-    members: [
-      { name: "Janne Rehm", role: "Crew", isGuest: true, birthYear: 2010 },
-      { name: "Nico Ewert", role: "Crew", isGuest: true, birthYear: 2011 },
-      {
-        name: "Sabine Köster",
-        role: "Trainer:in",
-        isGuest: false,
-        birthYear: 1988,
-        accountId: "account-005",
-      },
-    ],
-  },
-];
-
 const createInitialDistances = (): DistanceValues =>
   DISTANCE_RULES.reduce(
     (acc, rule) => {
@@ -232,30 +130,30 @@ export default function NewTripPage() {
     birthYear: null,
     accountId: null,
   });
-  const recordedTracks = useSyncExternalStore(
-    trackingStore.subscribe,
-    trackingStore.getSnapshot,
-    trackingStore.getServerSnapshot,
-  );
+  const { accounts, trainingGroups, tracks } = useLogbookStore((state) => ({
+    accounts: state.accounts,
+    trainingGroups: state.trainingGroups,
+    tracks: state.tracks,
+  }));
   const [selectedTrackIds, setSelectedTrackIds] = useState<string[]>([]);
   const [hasCustomEndLocation, setHasCustomEndLocation] = useState(false);
   const [selectedTrainingGroupId, setSelectedTrainingGroupId] = useState<
     string | null
   >(null);
   const [crewSearch, setCrewSearch] = useState("");
-  const [crewSuggestions, setCrewSuggestions] = useState<AccountProfile[]>(ACCOUNT_DIRECTORY);
+  const [crewSuggestions, setCrewSuggestions] = useState<AccountProfile[]>(accounts);
   const [selectedCrewAccount, setSelectedCrewAccount] =
     useState<AccountProfile | null>(null);
   const [trainingSearch, setTrainingSearch] = useState("");
   const [trainingSuggestions, setTrainingSuggestions] =
-    useState<AccountProfile[]>(ACCOUNT_DIRECTORY);
+    useState<AccountProfile[]>(accounts);
   const [selectedTrainingAccount, setSelectedTrainingAccount] =
     useState<AccountProfile | null>(null);
   useEffect(() => {
     setSelectedTrackIds((prev) =>
-      prev.filter((id) => recordedTracks.some((track) => track.id === id)),
+      prev.filter((id) => tracks.some((track) => track.id === id)),
     );
-  }, [recordedTracks]);
+  }, [tracks]);
 
   useEffect(() => {
     if (!formData.isTraining) {
@@ -269,26 +167,31 @@ export default function NewTripPage() {
       });
       setTrainingSearch("");
       setSelectedTrainingAccount(null);
-      setTrainingSuggestions(ACCOUNT_DIRECTORY);
+      setTrainingSuggestions(accounts);
     }
-  }, [formData.isTraining]);
+  }, [formData.isTraining, accounts]);
+
+  useEffect(() => {
+    setCrewSuggestions(accounts);
+    setTrainingSuggestions(accounts);
+  }, [accounts]);
 
   const trainingGroupOptions = useMemo(
     () =>
-      TRAINING_GROUPS.map((group) => ({
+      trainingGroups.map((group) => ({
         label: `${group.name} – ${group.focus}`,
         value: group.id,
       })),
-    [],
+    [trainingGroups],
   );
 
   const selectedTrainingGroup = useMemo(
     () =>
       selectedTrainingGroupId
-        ? TRAINING_GROUPS.find((group) => group.id === selectedTrainingGroupId) ??
+        ? trainingGroups.find((group) => group.id === selectedTrainingGroupId) ??
           null
         : null,
-    [selectedTrainingGroupId],
+    [trainingGroups, selectedTrainingGroupId],
   );
 
   const [activeStep, setActiveStep] = useState(0);
@@ -305,17 +208,16 @@ export default function NewTripPage() {
   );
 
   const selectedTracks = useMemo(
-    () =>
-      recordedTracks.filter((track) => selectedTrackIds.includes(track.id)),
-    [recordedTracks, selectedTrackIds],
+    () => tracks.filter((track) => selectedTrackIds.includes(track.id)),
+    [tracks, selectedTrackIds],
   );
   const trackOptions = useMemo(
     () =>
-      recordedTracks.map((track) => ({
+      tracks.map((track) => ({
         label: `${track.title} – ${track.distanceKm.toFixed(1)} km • ${formatDurationMinutes(track.durationMinutes)}`,
         value: track.id,
       })),
-    [recordedTracks],
+    [tracks],
   );
 
   const pointsBreakdown = useMemo(() => {
@@ -468,7 +370,7 @@ export default function NewTripPage() {
       if (!groupId) {
         return { ...prev, crewMembers: [] };
       }
-      const group = TRAINING_GROUPS.find((item) => item.id === groupId);
+      const group = trainingGroups.find((item) => item.id === groupId);
       return {
         ...prev,
         crewMembers: group
@@ -507,9 +409,9 @@ export default function NewTripPage() {
   const filterAccounts = (query: string) => {
     const normalized = query.toLowerCase();
     if (!normalized) {
-      return ACCOUNT_DIRECTORY;
+      return accounts;
     }
-    return ACCOUNT_DIRECTORY.filter(
+    return accounts.filter(
       (account) =>
         account.name.toLowerCase().includes(normalized) ||
         account.email.toLowerCase().includes(normalized),
@@ -768,7 +670,7 @@ export default function NewTripPage() {
                 <label className="text-xs uppercase tracking-wide text-slate-400">
                   GPS-Track übernehmen
                 </label>
-                {recordedTracks.length === 0 ? (
+                {tracks.length === 0 ? (
                   <p className="mt-1 text-xs text-slate-500">
                     Noch keine Aufzeichnungen vorhanden. Starte ein Tracking im
                     Profil, um einen Track zuzuweisen.
@@ -952,7 +854,7 @@ export default function NewTripPage() {
                           if (isGuest) {
                             setSelectedTrainingAccount(null);
                             setTrainingSearch("");
-                            setTrainingSuggestions(ACCOUNT_DIRECTORY);
+                            setTrainingSuggestions(accounts);
                           } else {
                             setTrainingSearch("");
                             setSelectedTrainingAccount(null);
@@ -982,7 +884,7 @@ export default function NewTripPage() {
                           if (!wasGuest) {
                             setTrainingSearch("");
                             setSelectedTrainingAccount(null);
-                            setTrainingSuggestions(ACCOUNT_DIRECTORY);
+                            setTrainingSuggestions(accounts);
                           }
                         }}
                       />
@@ -1090,7 +992,7 @@ export default function NewTripPage() {
                         }));
                         setSelectedCrewAccount(null);
                         setCrewSearch("");
-                        setCrewSuggestions(ACCOUNT_DIRECTORY);
+                        setCrewSuggestions(accounts);
                       }}
                       onLabel="Gastprofil"
                       offLabel="Konto verknüpft"
@@ -1116,7 +1018,7 @@ export default function NewTripPage() {
                         if (!wasGuest) {
                           setSelectedCrewAccount(null);
                           setCrewSearch("");
-                          setCrewSuggestions(ACCOUNT_DIRECTORY);
+                          setCrewSuggestions(accounts);
                         }
                       }}
                     />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "primereact/button";
@@ -11,97 +11,8 @@ import { Calendar } from "primereact/calendar";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Tooltip } from "primereact/tooltip";
-
-type Trip = {
-  id: string;
-  title: string;
-  boat: string;
-  distance: number;
-  duration: string;
-  dateISO: string;
-  start: string;
-  target: string;
-  crew: number;
-  status: "Abgeschlossen" | "In Planung" | "Auswertung";
-  ownerId: string;
-};
-
-const TRIPS: Trip[] = [
-  {
-    id: "TR-1093",
-    title: "Abendregatta Elbe",
-    boat: "Sun Odyssey 349",
-    distance: 14.3,
-    duration: "2 h 10 min",
-    dateISO: "2024-06-12",
-    start: "Wedel",
-    target: "Norderelbe",
-    crew: 4,
-    status: "Abgeschlossen",
-    ownerId: "me",
-  },
-  {
-    id: "TR-1092",
-    title: "Training – Spinnaker",
-    boat: "Dehler 34",
-    distance: 11.1,
-    duration: "1 h 45 min",
-    dateISO: "2024-06-09",
-    start: "Hamburg",
-    target: "Finkenwerder",
-    crew: 3,
-    status: "Auswertung",
-    ownerId: "delegate-nils",
-  },
-  {
-    id: "TR-1091",
-    title: "Küstentörn Rügen",
-    boat: "Bavaria C38",
-    distance: 38.6,
-    duration: "6 h 05 min",
-    dateISO: "2024-06-07",
-    start: "Sassnitz",
-    target: "Lohme",
-    crew: 5,
-    status: "Abgeschlossen",
-    ownerId: "delegate-mara",
-  },
-  {
-    id: "TR-1088",
-    title: "Nordsee Passage",
-    boat: "Hanse 388",
-    distance: 54.2,
-    duration: "9 h 18 min",
-    dateISO: "2024-05-31",
-    start: "Cuxhaven",
-    target: "Helgoland",
-    crew: 6,
-    status: "In Planung",
-    ownerId: "me",
-  },
-];
-
-const BOAT_OPTIONS = Array.from(new Set(TRIPS.map((trip) => trip.boat))).map(
-  (boat) => ({ label: boat, value: boat }),
-);
-
-const ACCESSIBLE_PROFILES = [
-  {
-    value: "me",
-    label: "Mein Profil",
-    rights: "Lesen & Schreiben",
-  },
-  {
-    value: "delegate-nils",
-    label: "Nils Brenner",
-    rights: "Lesen & Schreiben",
-  },
-  {
-    value: "delegate-mara",
-    label: "Mara Lenz",
-    rights: "Lesen",
-  },
-];
+import { useLogbookStore } from "../../lib/stores/logbook-store";
+import type { Trip, LogbookStore } from "../../lib/stores/logbook-store";
 
 const statusToColor: Record<Trip["status"], string> = {
   Abgeschlossen: "var(--color-primary)",
@@ -109,15 +20,51 @@ const statusToColor: Record<Trip["status"], string> = {
   Auswertung: "var(--color-accent-2)",
 };
 
+const selectTripsSlice = (state: LogbookStore) => ({
+  trips: state.trips,
+  delegates: state.delegates,
+});
+
 export default function TripsPage() {
   const router = useRouter();
+  const { trips, delegates } = useLogbookStore(selectTripsSlice);
   const [searchTerm, setSearchTerm] = useState("");
   const [boat, setBoat] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
     null,
     null,
   ]);
-  const [profileId, setProfileId] = useState(ACCESSIBLE_PROFILES[0]?.value ?? "me");
+
+  const accessibleProfiles = useMemo(
+    () => [
+      { value: "me", label: "Mein Profil", rights: "Lesen & Schreiben" },
+      ...delegates.map((delegate) => ({
+        value: delegate.id,
+        label: delegate.name,
+        rights: delegate.canWrite ? "Lesen & Schreiben" : "Nur Lesen",
+      })),
+    ],
+    [delegates],
+  );
+
+  const [profileId, setProfileId] = useState(
+    accessibleProfiles[0]?.value ?? "me",
+  );
+
+  useEffect(() => {
+    if (!accessibleProfiles.some((profile) => profile.value === profileId)) {
+      setProfileId(accessibleProfiles[0]?.value ?? "me");
+    }
+  }, [accessibleProfiles, profileId]);
+
+  const boatOptions = useMemo(
+    () =>
+      Array.from(new Set(trips.map((trip) => trip.boat))).map((boat) => ({
+        label: boat,
+        value: boat,
+      })),
+    [trips],
+  );
 
   const filteredTrips = useMemo(() => {
     const [startDate, endDate] = dateRange;
@@ -142,7 +89,7 @@ export default function TripsPage() {
           ).getTime()
         : null;
 
-    return TRIPS.filter((trip) => {
+    return trips.filter((trip) => {
       const matchesSearch =
         trip.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         trip.id.toLowerCase().includes(searchTerm.toLowerCase());
@@ -162,7 +109,7 @@ export default function TripsPage() {
         matchesEnd
       );
     });
-  }, [searchTerm, boat, dateRange, profileId]);
+  }, [searchTerm, boat, dateRange, profileId, trips]);
 
   const handleExport = () => {
     if (filteredTrips.length === 0) {
@@ -203,7 +150,7 @@ export default function TripsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     const profileLabel =
-      ACCESSIBLE_PROFILES.find((profile) => profile.value === profileId)
+      accessibleProfiles.find((profile) => profile.value === profileId)
         ?.label ?? "profil";
     link.href = url;
     link.download = `toerns_${profileLabel.replace(/\s+/g, "_").toLowerCase()}_${new Date().toISOString().slice(0, 10)}.csv`;
@@ -248,7 +195,7 @@ export default function TripsPage() {
                 <Dropdown
                   value={profileId}
                   onChange={(e) => setProfileId(e.value)}
-                  options={ACCESSIBLE_PROFILES.map((profile) => ({
+                  options={accessibleProfiles.map((profile) => ({
                     label: `${profile.label} (${profile.rights})`,
                     value: profile.value,
                   }))}
@@ -275,7 +222,7 @@ export default function TripsPage() {
                 <Dropdown
                   value={boat}
                   onChange={(e) => setBoat(e.value)}
-                  options={BOAT_OPTIONS}
+                  options={boatOptions}
                   placeholder="Alle Boote"
                   showClear
                   className="mt-1 w-full"
