@@ -8,7 +8,7 @@ import { Tag } from "primereact/tag";
 import { ToggleButton } from "primereact/togglebutton";
 import { Checkbox } from "primereact/checkbox";
 import { Dialog } from "primereact/dialog";
-import { AutoComplete, AutoCompleteCompleteMethodParams } from "primereact/autocomplete";
+import { AutoComplete } from "primereact/autocomplete";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   formatDurationMinutes,
@@ -31,6 +31,11 @@ const ACCOUNT_DIRECTORY = [
   { id: "account-005", name: "Tom Reimann", email: "tom.reimann@masys.app" },
 ];
 
+type AutoCompleteCompleteMethodParams = {
+  originalEvent: unknown;
+  query: string;
+};
+
 export default function ProfilePage() {
   const router = useRouter();
   const [offlineMode, setOfflineMode] = useState(true);
@@ -38,6 +43,7 @@ export default function ProfilePage() {
   const tracks = useSyncExternalStore(
     trackingStore.subscribe,
     trackingStore.getSnapshot,
+    trackingStore.getServerSnapshot,
   );
   const [trackingActive, setTrackingActive] = useState(false);
   const [trackingStart, setTrackingStart] = useState<Date | null>(null);
@@ -296,7 +302,9 @@ export default function ProfilePage() {
               placeholder="Profil suchen (Name oder E-Mail)"
               itemTemplate={accountItemTemplate}
               onChange={(e) => {
-                setDelegateSearch(e.value as string);
+                const nextValue =
+                  typeof e.value === "string" ? e.value : e.value?.name ?? "";
+                setDelegateSearch(nextValue);
                 setSelectedAccount(null);
                 setDelegateForm((prev) => ({ ...prev, name: "", email: "" }));
               }}
@@ -432,7 +440,7 @@ export default function ProfilePage() {
                     />
                     <Tag
                       value="Schreiben"
-                      severity={delegate.canWrite ? "warn" : "secondary"}
+                      severity={delegate.canWrite ? "warning" : "secondary"}
                     />
                   </div>
                 </div>

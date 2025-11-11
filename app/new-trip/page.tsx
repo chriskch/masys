@@ -16,7 +16,7 @@ import { Steps } from "primereact/steps";
 import { Checkbox } from "primereact/checkbox";
 import { Sidebar } from "primereact/sidebar";
 import { MultiSelect } from "primereact/multiselect";
-import { AutoComplete, AutoCompleteCompleteMethodParams } from "primereact/autocomplete";
+import { AutoComplete } from "primereact/autocomplete";
 import { DISTANCE_RULES, BONUS_RULES } from "../../data/points-config";
 import {
   formatDurationMinutes,
@@ -46,6 +46,11 @@ type BonusValues = {
   communityDays: number;
   youthTrainingSessions: number;
   regattaDutyDays: number;
+};
+
+type AutoCompleteCompleteMethodParams = {
+  originalEvent: unknown;
+  query: string;
 };
 
 type TripFormState = {
@@ -230,6 +235,7 @@ export default function NewTripPage() {
   const recordedTracks = useSyncExternalStore(
     trackingStore.subscribe,
     trackingStore.getSnapshot,
+    trackingStore.getServerSnapshot,
   );
   const [selectedTrackIds, setSelectedTrackIds] = useState<string[]>([]);
   const [hasCustomEndLocation, setHasCustomEndLocation] = useState(false);
@@ -876,7 +882,11 @@ export default function NewTripPage() {
                               placeholder="Profil suchen"
                               itemTemplate={accountItemTemplate}
                               onChange={(e) => {
-                                setTrainingSearch(e.value as string);
+                                const nextValue =
+                                  typeof e.value === "string"
+                                    ? e.value
+                                    : e.value?.name ?? "";
+                                setTrainingSearch(nextValue);
                                 setSelectedTrainingAccount(null);
                                 setNewTrainingMember((prev) => ({
                                   ...prev,
@@ -1010,15 +1020,19 @@ export default function NewTripPage() {
                             inputClassName="w-full"
                             placeholder="Profil suchen"
                             itemTemplate={accountItemTemplate}
-                            onChange={(e) => {
-                              setCrewSearch(e.value as string);
-                              setSelectedCrewAccount(null);
-                              setNewCrewMember((prev) => ({
-                                ...prev,
-                                name: "",
-                                accountId: null,
-                              }));
-                            }}
+                              onChange={(e) => {
+                                const nextValue =
+                                  typeof e.value === "string"
+                                    ? e.value
+                                    : e.value?.name ?? "";
+                                setCrewSearch(nextValue);
+                                setSelectedCrewAccount(null);
+                                setNewCrewMember((prev) => ({
+                                  ...prev,
+                                  name: "",
+                                  accountId: null,
+                                }));
+                              }}
                             onSelect={(e) => {
                               const account = e.value as AccountProfile;
                               setSelectedCrewAccount(account);

@@ -47,6 +47,9 @@ export const trackingStore = {
   getSnapshot() {
     return tracks;
   },
+  getServerSnapshot() {
+    return initialTracks;
+  },
   addTrack(track: GpsTrack) {
     tracks = [track, ...tracks];
     emitChange();
