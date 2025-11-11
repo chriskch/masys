@@ -56,19 +56,19 @@ export function AppShell({ children }: AppShellProps) {
     <div className="relative flex min-h-screen flex-col bg-slate-50 text-slate-900 md:flex-row">
       {!hideNavigation && (
         <aside className="sticky top-0 hidden h-screen w-64 flex-shrink-0 flex-col border-r border-slate-200 bg-white px-6 py-8 shadow-sm md:flex">
-          <div>
+          <div className="flex flex-col items-center">
             <Image
-              src="/Logo_Black.webp"
-              alt="MASYS Logbook"
-              width={140}
-              height={36}
+              src="/icon.png"
+              alt="MASYS Logbook icon"
+              width={64}
+              height={64}
               priority
-              className="h-auto w-32"
+              className="h-16 w-16"
             />
-            <h1 className="mt-4 text-3xl font-semibold leading-none text-slate-900">
+            <h1 className="mt-4 w-full text-left text-3xl font-semibold leading-none text-slate-900">
               Logbook
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 w-full text-left text-sm text-slate-500">
               Digitale Segelabenteuer jederzeit im Blick.
             </p>
           </div>

@@ -23,12 +23,12 @@ export default function AuthPage() {
           </p>
           <div className="flex justify-center">
             <Image
-              src="/Logo_Black.webp"
-              alt="MASYS Logbook"
-              width={160}
-              height={40}
+              src="/icon.png"
+              alt="MASYS Logbook icon"
+              width={80}
+              height={80}
               priority
-              className="h-auto w-36"
+              className="h-20 w-20"
             />
           </div>
           <p className="text-sm text-slate-500">
