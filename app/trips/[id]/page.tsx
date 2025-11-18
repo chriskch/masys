@@ -108,32 +108,32 @@ type TripDetailPageProps = {
   };
 };
 
-const statusSeverity: Record<TripDetail["status"], "success" | "warning" | "info"> =
-  {
-    Abgeschlossen: "success",
-    Auswertung: "warning",
-    "In Planung": "info",
-  };
+const statusSeverity: Record<
+  TripDetail["status"],
+  "success" | "warning" | "info"
+> = {
+  Abgeschlossen: "success",
+  Auswertung: "warning",
+  "In Planung": "info",
+};
 
 export default function TripDetailPage({ params }: TripDetailPageProps) {
   const router = useRouter();
-  const trip = useMemo(
-    () => TRIP_DETAILS[params.id] ?? null,
-    [params.id],
-  );
+  const trip = useMemo(() => TRIP_DETAILS[params.id] ?? null, [params.id]);
 
   if (!trip) {
     return (
-      <Card className="border-none !bg-white shadow-sm">
+      <Card className="border-none bg-white shadow-sm">
         <h1 className="text-2xl font-semibold text-slate-900">
           Törn nicht gefunden
         </h1>
         <p className="mt-2 text-sm text-slate-500">
-          Der gesuchte Törn existiert nicht oder wurde noch nicht synchronisiert.
+          Der gesuchte Törn existiert nicht oder wurde noch nicht
+          synchronisiert.
         </p>
         <Link
           href="/trips"
-          className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[var(--color-primary)]"
+          className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-(--color-primary)"
         >
           <i className="pi pi-arrow-left" aria-hidden />
           Zur Törnliste
@@ -158,42 +158,45 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           <Button
             label="Bearbeiten"
             icon="pi pi-pencil"
-            className="!rounded-full !border-none !bg-slate-200 !px-5 !py-3 !text-slate-700 hover:!bg-slate-300"
+            className="rounded-full border-none bg-slate-200 px-5 py-3 text-slate-700 hover:bg-slate-300"
             onClick={() => router.push(`/trips/${trip.id}/edit`)}
           />
           <Button
             label="Törn löschen"
             icon="pi pi-trash"
-            className="!rounded-full !border-none !bg-[var(--color-accent-5)] !px-5 !py-3 !text-white hover:!bg-[var(--color-accent-4)]"
+            className="rounded-full border-none bg-(--color-accent-5) px-5 py-3 text-white hover:bg-(--color-accent-4)"
             onClick={() => router.push("/trips")}
           />
         </div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <Card className="border-none !bg-white shadow-sm">
+        <Card className="border-none bg-white shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3 text-sm text-slate-500">
               <span className="flex items-center gap-2">
-                <i className="pi pi-map-marker text-[var(--color-primary-strong)]" aria-hidden />
+                <i
+                  className="pi pi-map-marker text-(--color-primary-strong)"
+                  aria-hidden
+                />
                 {trip.start} → {trip.destination}
               </span>
               <span className="flex items-center gap-2">
-                <i className="pi pi-route text-[var(--color-accent-2)]" aria-hidden />
+                <i
+                  className="pi pi-route text-(--color-accent-2)"
+                  aria-hidden
+                />
                 {trip.distance}
               </span>
               <span className="flex items-center gap-2">
-                <i className="pi pi-clock text-[var(--color-primary)]" aria-hidden />
+                <i className="pi pi-clock text-(--color-primary)" aria-hidden />
                 {trip.duration}
               </span>
             </div>
-            <Tag
-              value={trip.status}
-              severity={statusSeverity[trip.status]}
-            />
+            <Tag value={trip.status} severity={statusSeverity[trip.status]} />
           </div>
 
-          <div className="mt-6 rounded-2xl bg-gradient-to-br from-[rgba(1,168,10,0.15)] via-white to-slate-200 p-6 text-center text-sm text-slate-600 shadow-inner">
+          <div className="mt-6 rounded-2xl bg-linear-to-br from-[rgba(1,168,10,0.15)] via-white to-slate-200 p-6 text-center text-sm text-slate-600 shadow-inner">
             <p className="font-medium text-slate-700">
               Kartenansicht Platzhalter
             </p>
@@ -222,9 +225,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
           </div>
 
           <div className="mt-6">
-            <h2 className="text-2xl font-semibold text-slate-900">
-              Notizen
-            </h2>
+            <h2 className="text-2xl font-semibold text-slate-900">Notizen</h2>
             <p className="mt-2 text-sm text-slate-600 leading-relaxed">
               {trip.notes}
             </p>
@@ -232,7 +233,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
         </Card>
 
         <div className="flex flex-col gap-6">
-          <Card className="border-none !bg-white shadow-sm">
+          <Card className="border-none bg-white shadow-sm">
             <h2 className="text-xl font-semibold text-slate-900">
               Crew & Trainingsprofile
             </h2>
@@ -271,7 +272,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
                       {member.birthYear ? (
                         <Tag
                           value={`Jg. ${member.birthYear}`}
-                          className="!bg-slate-200 !text-slate-700"
+                          className="bg-slate-200 text-slate-700"
                         />
                       ) : null}
                     </div>
@@ -281,7 +282,7 @@ export default function TripDetailPage({ params }: TripDetailPageProps) {
             </div>
           </Card>
 
-          <Card className="border-none !bg-white shadow-sm">
+          <Card className="border-none bg-white shadow-sm">
             <h2 className="text-xl font-semibold text-slate-900">Aktionen</h2>
             <div className="mt-4 flex flex-col gap-2 text-sm text-slate-600">
               <p className="flex items-center gap-2">

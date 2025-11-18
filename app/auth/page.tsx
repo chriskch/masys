@@ -16,7 +16,7 @@ export default function AuthPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
-      <Card className="w-full max-w-md border-none !bg-white shadow-xl">
+      <Card className="w-full max-w-md border-none bg-white shadow-xl">
         <div className="flex flex-col gap-2 text-center">
           <p className="text-sm uppercase tracking-[0.35em] text-slate-400">
             Login
@@ -32,7 +32,8 @@ export default function AuthPage() {
             />
           </div>
           <p className="text-sm text-slate-500">
-            Melde dich an oder teste den Gastmodus, um das Logbuch auszuprobieren.
+            Melde dich an oder teste den Gastmodus, um das Logbuch
+            auszuprobieren.
           </p>
         </div>
 
@@ -72,11 +73,11 @@ export default function AuthPage() {
             type="submit"
             label="Anmelden"
             icon="pi pi-sign-in"
-            className="!mt-2 !w-full !rounded-full !border-none !bg-[var(--color-primary)] !px-5 !py-3 !text-base !font-semibold !text-white hover:!bg-[var(--color-primary-strong)]"
+            className="mt-2 w-full rounded-full border-none bg-(--color-primary) px-5 py-3 text-base font-semibold text-white hover:bg-(--color-primary-strong)"
           />
         </form>
 
-        <Divider align="center" className="!my-6">
+        <Divider align="center" className="my-6">
           <span className="text-xs uppercase tracking-wide text-slate-400">
             oder
           </span>
@@ -86,13 +87,13 @@ export default function AuthPage() {
           <Button
             label="Demo-Login"
             icon="pi pi-play"
-            className="!rounded-full !border-none !bg-[var(--color-accent-2)] !px-5 !py-3 !font-semibold !text-white hover:!bg-[var(--color-accent-3)]"
+            className="rounded-full border-none bg-(--color-accent-2) py-3 font-semibold text-white hover:bg-(--color-accent-3)"
             onClick={() => router.push("/")}
           />
           <Button
             label="Als Gast fortfahren"
             icon="pi pi-compass"
-            className="!rounded-full !border !border-[rgba(1,168,10,0.4)] !bg-white !px-5 !py-3 !font-semibold !text-[var(--color-primary)] hover:!border-[rgba(1,168,10,0.6)] hover:!bg-[rgba(1,168,10,0.05)]"
+            className="rounded-full border border-[rgba(1,168,10,0.4)] bg-white px-5 py-3 font-semibold text-(--color-primary) hover:border-[rgba(1,168,10,0.6)] hover:bg-[rgba(1,168,10,0.05)]"
             onClick={() => router.push("/")}
           />
         </div>

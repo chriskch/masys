@@ -1,4 +1,5 @@
-import { useDebugValue, useRef, useSyncExternalStore } from "react";
+import { useDebugValue } from "react";
+import { useSyncExternalStoreWithSelector } from "use-sync-external-store/shim/with-selector";
 import { createStore } from "zustand/vanilla";
 
 export type AccountProfile = {
@@ -261,7 +262,7 @@ export const formatDurationMinutes = (minutes: number) => {
   return hrs > 0 ? `${hrs} h ${mins} min` : `${mins} min`;
 };
 
-const logbookStore = createStore<LogbookStore>((set, get) => ({
+const logbookStore = createStore<LogbookStore>((set) => ({
   accounts: accountDirectory,
   delegates: initialDelegates,
   tracks: initialTracks,
@@ -346,26 +347,17 @@ export const useLogbookStore = <T = LogbookStore>(
   selector: (state: LogbookStore) => T = identitySelector as (state: LogbookStore) => T,
   equalityFn: (a: T, b: T) => boolean = defaultEquality,
 ) => {
-  const state = useSyncExternalStore(
+  const selectedSlice = useSyncExternalStoreWithSelector(
     logbookStore.subscribe,
     logbookStore.getState,
     getCachedServerSnapshot,
+    selector,
+    equalityFn,
   );
 
-  const hasSliceRef = useRef(false);
-  const selectedSlice = selector(state);
-  const sliceRef = useRef<T>(selectedSlice);
+  useDebugValue(selectedSlice);
 
-  if (!hasSliceRef.current) {
-    hasSliceRef.current = true;
-    sliceRef.current = selectedSlice;
-  } else if (!equalityFn(selectedSlice, sliceRef.current)) {
-    sliceRef.current = selectedSlice;
-  }
-
-  useDebugValue(sliceRef.current);
-
-  return sliceRef.current;
+  return selectedSlice;
 };
 
 export const getLogbookState = () => logbookStore.getState();

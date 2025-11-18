@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "primereact/button";
@@ -12,7 +12,11 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Tooltip } from "primereact/tooltip";
 import { useLogbookStore } from "../../lib/stores/logbook-store";
-import type { Trip, LogbookStore } from "../../lib/stores/logbook-store";
+import type {
+  Trip,
+  LogbookStore,
+  Delegate,
+} from "../../lib/stores/logbook-store";
 
 const statusToColor: Record<Trip["status"], string> = {
   Abgeschlossen: "var(--color-primary)",
@@ -38,32 +42,33 @@ export default function TripsPage() {
   const accessibleProfiles = useMemo(
     () => [
       { value: "me", label: "Mein Profil", rights: "Lesen & Schreiben" },
-      ...delegates.map((delegate) => ({
+      ...delegates.map((delegate: Delegate) => ({
         value: delegate.id,
         label: delegate.name,
         rights: delegate.canWrite ? "Lesen & Schreiben" : "Nur Lesen",
       })),
     ],
-    [delegates],
+    [delegates]
   );
 
   const [profileId, setProfileId] = useState(
-    accessibleProfiles[0]?.value ?? "me",
+    accessibleProfiles[0]?.value ?? "me"
   );
 
-  useEffect(() => {
-    if (!accessibleProfiles.some((profile) => profile.value === profileId)) {
-      setProfileId(accessibleProfiles[0]?.value ?? "me");
+  const effectiveProfileId = useMemo(() => {
+    if (accessibleProfiles.some((profile) => profile.value === profileId)) {
+      return profileId;
     }
+    return accessibleProfiles[0]?.value ?? "me";
   }, [accessibleProfiles, profileId]);
 
   const boatOptions = useMemo(
     () =>
-      Array.from(new Set(trips.map((trip) => trip.boat))).map((boat) => ({
+      Array.from(new Set(trips.map((trip: Trip) => trip.boat))).map((boat) => ({
         label: boat,
         value: boat,
       })),
-    [trips],
+    [trips]
   );
 
   const filteredTrips = useMemo(() => {
@@ -73,7 +78,7 @@ export default function TripsPage() {
         ? new Date(
             startDate.getFullYear(),
             startDate.getMonth(),
-            startDate.getDate(),
+            startDate.getDate()
           ).getTime()
         : null;
     const endBound =
@@ -85,20 +90,19 @@ export default function TripsPage() {
             23,
             59,
             59,
-            999,
+            999
           ).getTime()
         : null;
 
-    return trips.filter((trip) => {
+    return trips.filter((trip: Trip) => {
       const matchesSearch =
         trip.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         trip.id.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesBoat = boat ? trip.boat === boat : true;
-      const matchesProfile = trip.ownerId === profileId;
+      const matchesProfile = trip.ownerId === effectiveProfileId;
 
       const tripTime = new Date(trip.dateISO).getTime();
-      const matchesStart =
-        startBound !== null ? tripTime >= startBound : true;
+      const matchesStart = startBound !== null ? tripTime >= startBound : true;
       const matchesEnd = endBound !== null ? tripTime <= endBound : true;
 
       return (
@@ -109,7 +113,7 @@ export default function TripsPage() {
         matchesEnd
       );
     });
-  }, [searchTerm, boat, dateRange, profileId, trips]);
+  }, [searchTerm, boat, dateRange, effectiveProfileId, trips]);
 
   const handleExport = () => {
     if (filteredTrips.length === 0) {
@@ -126,7 +130,7 @@ export default function TripsPage() {
       "Datum",
       "Status",
     ];
-    const rows = filteredTrips.map((trip) => [
+    const rows = filteredTrips.map((trip: Trip) => [
       trip.id,
       trip.title,
       trip.boat,
@@ -140,9 +144,7 @@ export default function TripsPage() {
 
     const csv = [header, ...rows]
       .map((cols) =>
-        cols
-          .map((col) => `"${String(col).replace(/"/g, '""')}"`)
-          .join(";"),
+        cols.map((col) => `"${String(col).replace(/"/g, '""')}"`).join(";")
       )
       .join("\n");
 
@@ -150,10 +152,12 @@ export default function TripsPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     const profileLabel =
-      accessibleProfiles.find((profile) => profile.value === profileId)
+      accessibleProfiles.find((profile) => profile.value === effectiveProfileId)
         ?.label ?? "profil";
     link.href = url;
-    link.download = `toerns_${profileLabel.replace(/\s+/g, "_").toLowerCase()}_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `toerns_${profileLabel
+      .replace(/\s+/g, "_")
+      .toLowerCase()}_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -179,12 +183,12 @@ export default function TripsPage() {
         <Button
           label="Neuen Törn starten"
           icon="pi pi-plus"
-          className="!w-full !justify-center !rounded-full !border-none !bg-[var(--color-primary)] !px-5 !py-3 !text-base !font-semibold !text-white shadow-md hover:!bg-[var(--color-primary-strong)] sm:!w-auto"
+          className="w-full justify-center rounded-full border-none bg-(--color-primary) px-5 py-3 text-base font-semibold text-white shadow-md hover:bg-(--color-primary-strong) sm:w-auto"
           onClick={() => router.push("/new-trip")}
         />
       </header>
 
-      <Card className="border-none !bg-white shadow-sm">
+      <Card className="border-none bg-white shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="flex flex-1 flex-col gap-3">
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -193,7 +197,7 @@ export default function TripsPage() {
                   Profil
                 </label>
                 <Dropdown
-                  value={profileId}
+                  value={effectiveProfileId}
                   onChange={(e) => setProfileId(e.value)}
                   options={accessibleProfiles.map((profile) => ({
                     label: `${profile.label} (${profile.rights})`,
@@ -250,17 +254,15 @@ export default function TripsPage() {
           <Button
             label="Angezeigte Törns exportieren"
             icon="pi pi-download"
-            className="!w-full !justify-center !rounded-full !border !border-[rgba(1,168,10,0.4)] !bg-white !px-5 !py-3 !text-[var(--color-primary)] hover:!border-[rgba(1,168,10,0.6)] hover:!bg-[rgba(1,168,10,0.05)] md:!w-auto"
+            className="w-full justify-center rounded-full border border-[rgba(1,168,10,0.4)] bg-white px-5 py-3 text-(--color-primary) hover:border-[rgba(1,168,10,0.6)] hover:bg-[rgba(1,168,10,0.05)] md:w-auto"
             onClick={handleExport}
             disabled={filteredTrips.length === 0}
           />
         </div>
       </Card>
 
-      <Card className="border-none !bg-white shadow-sm">
-        <h2 className="text-2xl font-semibold text-slate-900">
-          Törnliste
-        </h2>
+      <Card className="border-none bg-white shadow-sm">
+        <h2 className="text-2xl font-semibold text-slate-900">Törnliste</h2>
         <DataTable
           value={filteredTrips}
           className="mt-4"
@@ -277,7 +279,9 @@ export default function TripsPage() {
                 <span className="text-xs uppercase tracking-wide text-slate-400">
                   {new Date(trip.dateISO).toLocaleDateString("de-DE")}
                 </span>
-                <span className="font-semibold text-slate-900">{trip.title}</span>
+                <span className="font-semibold text-slate-900">
+                  {trip.title}
+                </span>
               </div>
             )}
           />
@@ -311,7 +315,7 @@ export default function TripsPage() {
             body={(trip: Trip) => (
               <Link
                 href={`/trips/${trip.id}`}
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-[var(--color-primary)] hover:border-[rgba(1,168,10,0.35)] hover:bg-[rgba(1,168,10,0.08)] hover:text-[var(--color-primary-strong)]"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-sm font-medium text-(--color-primary) hover:border-[rgba(1,168,10,0.35)] hover:bg-[rgba(1,168,10,0.08)] hover:text-(--color-primary-strong)"
               >
                 Details
                 <i className="pi pi-arrow-right" aria-hidden />

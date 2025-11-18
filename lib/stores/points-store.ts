@@ -1,3 +1,7 @@
+import { useDebugValue } from "react";
+import { useSyncExternalStoreWithSelector } from "use-sync-external-store/shim/with-selector";
+import { createStore } from "zustand/vanilla";
+
 export type DistanceRule = {
   id: "inland" | "inlandOptimist" | "sea" | "upstream";
   title: string;
@@ -28,7 +32,19 @@ export type BonusRule = {
   category: "operation" | "voyage" | "volunteering";
 };
 
-export const DISTANCE_RULES: DistanceRule[] = [
+export type BonusCategoryMeta = {
+  title: string;
+  description: string;
+  severity: "info" | "success" | "warning";
+};
+
+export type PointsStore = {
+  distanceRules: DistanceRule[];
+  bonusRules: BonusRule[];
+  bonusCategoryMeta: Record<BonusRule["category"], BonusCategoryMeta>;
+};
+
+const distanceRules: DistanceRule[] = [
   {
     id: "inland",
     title: "Binnentörn",
@@ -58,7 +74,7 @@ export const DISTANCE_RULES: DistanceRule[] = [
   },
 ];
 
-export const BONUS_RULES: BonusRule[] = [
+const bonusRules: BonusRule[] = [
   {
     id: "engineKm",
     title: "Motortörn",
@@ -139,3 +155,64 @@ export const BONUS_RULES: BonusRule[] = [
     category: "volunteering",
   },
 ];
+
+const bonusCategoryMeta: Record<BonusRule["category"], BonusCategoryMeta> = {
+  operation: {
+    title: "Manöver & Betrieb",
+    description:
+      "Aktionen, die während des Betriebs oder Manövriers stattfinden und zusätzliche Punkte verleihen.",
+    severity: "info",
+  },
+  voyage: {
+    title: "Törn-Boni",
+    description:
+      "Zusatzpunkte für besondere Reiseabschnitte, Langtörns oder Vereinsaktionen.",
+    severity: "success",
+  },
+  volunteering: {
+    title: "Ehrenamt & Engagement",
+    description:
+      "Punkte für Trainer*innen, Regatta-Funktionen und andere ehrenamtliche Aufgaben.",
+    severity: "warning",
+  },
+};
+
+const pointsStore = createStore<PointsStore>(() => ({
+  distanceRules,
+  bonusRules,
+  bonusCategoryMeta,
+}));
+
+const getCachedServerSnapshot = (() => {
+  let snapshot: PointsStore | undefined;
+  return () => {
+    if (!snapshot) {
+      snapshot = pointsStore.getInitialState();
+    }
+    return snapshot;
+  };
+})();
+
+const identitySelector = <T,>(state: T) => state;
+const defaultEquality = Object.is;
+
+export const usePointsStore = <T = PointsStore>(
+  selector: (state: PointsStore) => T = identitySelector as (
+    state: PointsStore
+  ) => T,
+  equalityFn: (a: T, b: T) => boolean = defaultEquality
+) => {
+  const selectedSlice = useSyncExternalStoreWithSelector(
+    pointsStore.subscribe,
+    pointsStore.getState,
+    getCachedServerSnapshot,
+    selector,
+    equalityFn
+  );
+
+  useDebugValue(selectedSlice);
+
+  return selectedSlice;
+};
+
+export const getPointsState = () => pointsStore.getState();

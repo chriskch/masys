@@ -6,35 +6,19 @@ import { Dropdown } from "primereact/dropdown";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Tag } from "primereact/tag";
-
-type RankingEntry = {
-  rank: number;
-  name: string;
-  points: number;
-  distance: number;
-  hours: number;
-  isYou?: boolean;
-};
-
-const RANKING_DATA: RankingEntry[] = [
-  { rank: 1, name: "Laura Vogt", points: 1540, distance: 712, hours: 96 },
-  { rank: 2, name: "Nils Brenner", points: 1495, distance: 698, hours: 90 },
-  { rank: 3, name: "Du", points: 1280, distance: 642, hours: 84, isYou: true },
-  { rank: 4, name: "Kim Albrecht", points: 1255, distance: 618, hours: 78 },
-  { rank: 5, name: "Tom Reimann", points: 1180, distance: 580, hours: 75 },
-  { rank: 6, name: "Mara Lenz", points: 1135, distance: 551, hours: 73 },
-];
-
-const PERIOD_OPTIONS = [
-  { label: "Aktueller Monat", value: "month" },
-  { label: "Quartal", value: "quarter" },
-  { label: "Gesamt", value: "all" },
-];
+import {
+  useRankingStore,
+  type RankingEntry,
+} from "../../lib/stores/ranking-store";
 
 export default function RankingPage() {
   const [periodFilter, setPeriodFilter] = useState<string>("month");
+  const { entries, periodOptions } = useRankingStore((state) => ({
+    entries: state.entries,
+    periodOptions: state.periodOptions,
+  }));
 
-  const filteredRanking = RANKING_DATA;
+  const filteredRanking = entries;
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,7 +35,7 @@ export default function RankingPage() {
         </p>
       </header>
 
-      <Card className="border-none !bg-white shadow-sm">
+      <Card className="border-none bg-white! shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="flex flex-1 flex-col gap-3 sm:flex-row">
             <div className="flex-1">
@@ -61,7 +45,7 @@ export default function RankingPage() {
               <Dropdown
                 value={periodFilter}
                 onChange={(e) => setPeriodFilter(e.value)}
-                options={PERIOD_OPTIONS}
+                options={periodOptions}
                 className="mt-1 w-full"
               />
             </div>
@@ -74,12 +58,12 @@ export default function RankingPage() {
                 ? "Quartalswertung"
                 : "Gesamtwertung"
             }
-            className="w-fit !border-none !bg-[rgba(1,168,10,0.12)] !text-[var(--color-primary)]"
+            className="w-fit border-none! bg-[rgba(1,168,10,0.12)]! text-(--color-primary)!"
           />
         </div>
       </Card>
 
-      <Card className="border-none !bg-white shadow-sm">
+      <Card className="border-none bg-white! shadow-sm">
         <h2 className="text-2xl font-semibold text-slate-900">Leaderboard</h2>
         <DataTable
           value={filteredRanking}

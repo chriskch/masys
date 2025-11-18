@@ -15,14 +15,9 @@ import {
   formatDurationMinutes,
   type AccountProfile,
   type GpsTrack,
+  type Delegate,
 } from "../../lib/stores/logbook-store";
-
-const stats = [
-  { label: "Gesamtpunkte", value: "1.280" },
-  { label: "Distanz", value: "642 km" },
-  { label: "Segelstunden", value: "84 h" },
-  { label: "Törns dieses Jahr", value: "18" },
-];
+import { useProfileStore } from "../../lib/stores/profile-store";
 
 type AutoCompleteCompleteMethodParams = {
   originalEvent: unknown;
@@ -50,6 +45,7 @@ export default function ProfilePage() {
     updateDelegatePermissions: state.updateDelegatePermissions,
     removeDelegate: state.removeDelegate,
   }));
+  const stats = useProfileStore((state) => state.stats);
   const [offlineMode, setOfflineMode] = useState(true);
   const [unitMetric, setUnitMetric] = useState(true);
   const [trackingActive, setTrackingActive] = useState(false);
@@ -64,15 +60,21 @@ export default function ProfilePage() {
   const [delegateModalVisible, setDelegateModalVisible] = useState(false);
   const [delegateSearch, setDelegateSearch] = useState("");
   const [accountSuggestions, setAccountSuggestions] = useState(accounts);
-  const [selectedAccount, setSelectedAccount] =
-    useState<AccountProfile | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<AccountProfile | null>(
+    null
+  );
 
   useEffect(() => {
-    if (!trackingActive || !trackingStart) {
+    if (!(trackingActive || trackingStart)) {
       return;
     }
     const interval = setInterval(() => {
-      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - trackingStart.getTime()) / 1000)));
+      if (!trackingStart) {
+        return;
+      }
+      setElapsedSeconds(
+        Math.max(0, Math.floor((Date.now() - trackingStart.getTime()) / 1000))
+      );
     }, 1000);
     return () => clearInterval(interval);
   }, [trackingActive, trackingStart]);
@@ -130,7 +132,12 @@ export default function ProfilePage() {
         typeof crypto !== "undefined" && crypto.randomUUID
           ? crypto.randomUUID()
           : `track-${Date.now()}`,
-      title: `Direktaufnahme ${new Date().toLocaleDateString("de-DE")} ${new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}`,
+      title: `Direktaufnahme ${new Date().toLocaleDateString(
+        "de-DE"
+      )} ${new Date().toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`,
       startedAt: trackingStart.toISOString(),
       durationMinutes,
       distanceKm: simulatedDistanceKm > 0 ? simulatedDistanceKm : 0.2,
@@ -167,10 +174,10 @@ export default function ProfilePage() {
     }
     setAccountSuggestions(
       accounts.filter(
-        (account) =>
+        (account: AccountProfile) =>
           account.name.toLowerCase().includes(query) ||
-          account.email.toLowerCase().includes(query),
-      ),
+          account.email.toLowerCase().includes(query)
+      )
     );
   };
 
@@ -184,7 +191,7 @@ export default function ProfilePage() {
   const handleDelegatePermissionChange = (
     id: string,
     key: "canRead" | "canWrite",
-    value: boolean,
+    value: boolean
   ) => {
     if (key === "canWrite") {
       updateDelegatePermissions(id, { canWrite: value });
@@ -203,7 +210,7 @@ export default function ProfilePage() {
         <div className="flex items-start gap-4">
           <Avatar
             label="LV"
-            className="!h-16 !w-16 !bg-[var(--color-primary)] !text-lg !font-semibold !text-white"
+            className="h-16! w-16! bg-(--color-primary)! text-lg! font-semibold! text-white!"
           />
           <div>
             <p className="text-sm uppercase tracking-[0.35em] text-slate-400">
@@ -220,12 +227,12 @@ export default function ProfilePage() {
         <Button
           label="Profil bearbeiten"
           icon="pi pi-user-edit"
-          className="!rounded-full !border-none !bg-slate-200 !px-5 !py-3 !text-slate-700 hover:!bg-slate-300"
+          className="rounded-full! border-none! bg-slate-200! px-5! py-3! text-slate-700! hover:bg-slate-300!"
           onClick={() => router.push("/profile/edit")}
         />
       </header>
 
-      <Card className="border-none !bg-white shadow-sm">
+      <Card className="border-none bg-white! shadow-sm">
         <h2 className="text-2xl font-semibold text-slate-900">Statistiken</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
@@ -244,11 +251,11 @@ export default function ProfilePage() {
         </div>
       </Card>
 
-  <Dialog
+      <Dialog
         header="Delegation hinzufügen"
         visible={delegateModalVisible}
         onHide={() => setDelegateModalVisible(false)}
-        className="!w-full sm:!w-96"
+        className="w-full! sm:w-96!"
         breakpoints={{ "960px": "75vw", "640px": "95vw" }}
       >
         <div className="flex flex-col gap-4">
@@ -338,7 +345,7 @@ export default function ProfilePage() {
         </div>
       </Dialog>
 
-      <Card className="border-none !bg-white shadow-sm">
+      <Card className="border-none bg-white! shadow-sm">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
             <h2 className="text-2xl font-semibold text-slate-900">
@@ -351,14 +358,16 @@ export default function ProfilePage() {
           </div>
           <div className="flex items-center gap-3">
             <Tag
-              value={`${delegates.length} aktive Delegation${delegates.length === 1 ? "" : "en"}`}
-              className="!border-none !bg-[rgba(1,168,10,0.12)] !text-[var(--color-primary)]"
+              value={`${delegates.length} aktive Delegation${
+                delegates.length === 1 ? "" : "en"
+              }`}
+              className="border-none! bg-[rgba(1,168,10,0.12)]! text-(--color-primary)!"
             />
             <Button
               icon="pi pi-plus"
               rounded
               aria-label="Delegation hinzufügen"
-              className="!border-none !bg-[var(--color-primary)] !text-white hover:!bg-[var(--color-primary-strong)]"
+              className="border-none! bg-(--color-primary)! text-white! hover:bg-(--color-primary-strong)!"
               onClick={() => {
                 setDelegateModalVisible(true);
                 setDelegateSearch("");
@@ -385,7 +394,7 @@ export default function ProfilePage() {
               Noch keine Delegationen eingerichtet.
             </p>
           ) : (
-            delegates.map((delegate) => (
+            delegates.map((delegate: Delegate) => (
               <div
                 key={delegate.id}
                 className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -415,7 +424,7 @@ export default function ProfilePage() {
                         handleDelegatePermissionChange(
                           delegate.id,
                           "canRead",
-                          e.checked ?? false,
+                          e.checked ?? false
                         )
                       }
                     />
@@ -429,7 +438,7 @@ export default function ProfilePage() {
                         handleDelegatePermissionChange(
                           delegate.id,
                           "canWrite",
-                          e.checked ?? false,
+                          e.checked ?? false
                         )
                       }
                     />
@@ -450,7 +459,7 @@ export default function ProfilePage() {
         </div>
       </Card>
 
-      <Card className="border-none !bg-white shadow-sm">
+      <Card className="border-none bg-white! shadow-sm">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <h2 className="text-2xl font-semibold text-slate-900">
             GPS Tracking
@@ -461,10 +470,10 @@ export default function ProfilePage() {
                 ? "Aufnahme läuft"
                 : `${tracks.length} Track${tracks.length === 1 ? "" : "s"}`
             }
-            className={`!border-none ${
+            className={`border-none! ${
               trackingActive
-                ? "!bg-[rgba(94,1,168,0.15)] !text-[var(--color-accent-5)]"
-                : "!bg-[rgba(1,168,10,0.12)] !text-[var(--color-primary)]"
+                ? "bg-[rgba(94,1,168,0.15)]! text-(--color-accent-5)!"
+                : "bg-[rgba(1,168,10,0.12)]! text-(--color-primary)!"
             }`}
           />
         </div>
@@ -503,8 +512,9 @@ export default function ProfilePage() {
                     <p className="mt-1 text-lg font-semibold text-slate-900">
                       {elapsedSeconds > 0
                         ? `${Math.max(
-                            simulatedDistanceKm / Math.max(elapsedSeconds / 3600, 0.1),
-                            0,
+                            simulatedDistanceKm /
+                              Math.max(elapsedSeconds / 3600, 0.1),
+                            0
                           ).toFixed(1)} kn`
                         : "–"}
                     </p>
@@ -514,13 +524,13 @@ export default function ProfilePage() {
                   <Button
                     label="Tracking speichern"
                     icon="pi pi-save"
-                    className="!w-full !border-none !bg-[var(--color-primary)] !px-5 !py-3 !font-semibold !text-white hover:!bg-[var(--color-primary-strong)] sm:!w-auto"
+                    className="w-full! border-none! bg-(--color-primary)! px-5! py-3! font-semibold! text-white! hover:bg-(--color-primary-strong)! sm:w-auto!"
                     onClick={handleSaveTracking}
                   />
                   <Button
                     label="Abbrechen"
                     icon="pi pi-times"
-                    className="!w-full !border border-slate-300 !bg-white !px-5 !py-3 !font-semibold !text-slate-700 hover:!bg-slate-50 sm:!w-auto"
+                    className="w-full! border border-slate-300! bg-white! px-5! py-3! font-semibold! text-slate-700! hover:bg-slate-50! sm:w-auto!"
                     onClick={resetTracking}
                   />
                 </div>
@@ -528,14 +538,14 @@ export default function ProfilePage() {
             ) : (
               <>
                 <p className="text-sm text-slate-500">
-                  Starte hier eine GPS-Aufzeichnung. Sobald du speicherst,
-                  steht der Track im Formular &quot;Neuen Törn anlegen&quot;
-                  zur Auswahl bereit.
+                  Starte hier eine GPS-Aufzeichnung. Sobald du speicherst, steht
+                  der Track im Formular &quot;Neuen Törn anlegen&quot; zur
+                  Auswahl bereit.
                 </p>
                 <Button
                   label="Tracking starten"
                   icon="pi pi-map-marker"
-                  className="!mt-4 !w-full !border-none !bg-[var(--color-primary)] !px-5 !py-3 !font-semibold !text-white hover:!bg-[var(--color-primary-strong)] sm:!w-auto"
+                  className="mt-4! w-full! border-none! bg-(--color-primary)! px-5! py-3! font-semibold text-white! hover:bg-(--color-primary-strong)! sm:w-auto!"
                   onClick={handleStartTracking}
                 />
               </>
@@ -551,7 +561,7 @@ export default function ProfilePage() {
                   Noch keine GPS-Tracks gespeichert.
                 </p>
               ) : (
-                tracks.map((track) => (
+                tracks.map((track: GpsTrack) => (
                   <div
                     key={track.id}
                     className="flex items-start justify-between gap-3 rounded-xl border border-slate-100 px-3 py-2"
@@ -577,7 +587,7 @@ export default function ProfilePage() {
                       text
                       rounded
                       severity="secondary"
-                      className="!text-slate-400 hover:!text-rose-500"
+                      className="text-slate-400! hover:text-rose-500!"
                       aria-label="Track löschen"
                       onClick={() => removeTrack(track.id)}
                     />
@@ -590,8 +600,10 @@ export default function ProfilePage() {
       </Card>
 
       <div className="grid gap-6">
-        <Card className="border-none !bg-white shadow-sm">
-          <h2 className="text-2xl font-semibold text-slate-900">Einstellungen</h2>
+        <Card className="border-none bg-white! shadow-sm">
+          <h2 className="text-2xl font-semibold text-slate-900">
+            Einstellungen
+          </h2>
           <div className="mt-4 flex flex-col gap-4 text-sm text-slate-600">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -605,7 +617,7 @@ export default function ProfilePage() {
                 onChange={(e) => setOfflineMode(e.value)}
                 onLabel="Ein"
                 offLabel="Aus"
-                className="!border-none !bg-slate-200 !text-slate-700"
+                className="border-none! bg-slate-200! text-slate-700!"
               />
             </div>
             <div className="flex items-center justify-between gap-3">
@@ -620,7 +632,7 @@ export default function ProfilePage() {
                 onChange={(e) => setUnitMetric(e.value)}
                 onLabel="Metrisch"
                 offLabel="Nautisch"
-                className="!border-none !bg-slate-200 !text-slate-700"
+                className="border-none! bg-slate-200! text-slate-700!"
               />
             </div>
             <div className="flex items-center justify-between gap-3">

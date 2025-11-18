@@ -1,30 +1,15 @@
 "use client";
 
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "primereact/button";
+import { useNavigationStore } from "../lib/stores/navigation-store";
 
 type AppShellProps = {
   children: ReactNode;
 };
-
-type NavItem = {
-  href: string;
-  icon: string;
-  label: string;
-};
-
-const NAV_ITEMS: NavItem[] = [
-  { href: "/", icon: "pi pi-home", label: "Dashboard" },
-  { href: "/trips", icon: "pi pi-compass", label: "Törns" },
-  { href: "/new-trip", icon: "pi pi-plus-circle", label: "Törn starten" },
-  { href: "/ranking", icon: "pi pi-chart-line", label: "Rangliste" },
-  { href: "/profile", icon: "pi pi-user", label: "Profil" },
-];
-
-const HIDE_NAV_PATHS = ["/auth"];
 
 const isActivePath = (href: string, pathname: string) => {
   if (href === "/") {
@@ -36,21 +21,45 @@ const isActivePath = (href: string, pathname: string) => {
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { navItems, hideNavPaths } = useNavigationStore((state) => ({
+    navItems: state.navItems,
+    hideNavPaths: state.hideNavPaths,
+  }));
 
   const hideNavigation = useMemo(
     () =>
-      HIDE_NAV_PATHS.some((blockedPath) =>
-        pathname === blockedPath
-          ? true
-          : pathname.startsWith(`${blockedPath}/`),
+      hideNavPaths.some((blockedPath) =>
+        pathname === blockedPath ? true : pathname.startsWith(`${blockedPath}/`)
       ),
-    [pathname],
+    [hideNavPaths, pathname]
   );
 
   const mobileNavItems = useMemo(
-    () => NAV_ITEMS.filter((item) => item.href !== "/new-trip"),
-    [],
+    () => navItems.filter((item) => item.href !== "/new-trip"),
+    [navItems]
   );
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production") {
+      return;
+    }
+
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    const registerServiceWorker = async () => {
+      try {
+        await navigator.serviceWorker.register("/service-worker.js", {
+          scope: "/",
+        });
+      } catch (error) {
+        console.error("Service Worker registration failed:", error);
+      }
+    };
+
+    registerServiceWorker();
+  }, []);
 
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-50 text-slate-900 md:flex-row">
@@ -74,7 +83,7 @@ export function AppShell({ children }: AppShellProps) {
           </div>
 
           <nav className="mt-10 flex flex-1 flex-col gap-1">
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               const active = isActivePath(item.href, pathname);
               return (
                 <Link
@@ -82,15 +91,13 @@ export function AppShell({ children }: AppShellProps) {
                   href={item.href}
                   className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
                     active
-                      ? "bg-[rgba(1,168,10,0.12)] text-[var(--color-primary)]"
+                      ? "bg-[rgba(1,168,10,0.12)] text-(--color-primary)"
                       : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >
                   <i
                     className={`${item.icon} text-lg ${
-                      active
-                        ? "text-[var(--color-primary)]"
-                        : "text-slate-500"
+                      active ? "text-(--color-primary)" : "text-slate-500"
                     }`}
                     aria-hidden
                   />
@@ -103,7 +110,7 @@ export function AppShell({ children }: AppShellProps) {
           <Button
             label="Neuen Törn starten"
             icon="pi pi-plus"
-            className="!mt-6 !rounded-full !border-none !bg-[var(--color-primary)] !px-5 !py-3 !text-base !font-semibold !text-white !shadow-lg hover:!bg-[var(--color-primary-strong)]"
+            className="mt-6 rounded-full border-none bg-(--color-primary) px-5 py-3 text-base font-semibold text-white shadow-lg hover:bg-(--color-primary-strong)"
             onClick={() => router.push("/new-trip")}
           />
         </aside>
@@ -123,7 +130,7 @@ export function AppShell({ children }: AppShellProps) {
 
       {!hideNavigation && (
         <>
-          <nav className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-around border-t border-slate-200 bg-white/95 px-3 py-2 backdrop-blur md:hidden">
+          <nav className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-around rounded-full border border-white/80 bg-white/90 px-4 py-3 shadow-2xl backdrop-blur-md md:hidden">
             {mobileNavItems.map((item) => {
               const active = isActivePath(item.href, pathname);
               return (
@@ -131,16 +138,12 @@ export function AppShell({ children }: AppShellProps) {
                   key={item.href}
                   href={item.href}
                   className={`flex flex-col items-center gap-1 rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
-                    active
-                      ? "text-[var(--color-primary)]"
-                      : "text-slate-500"
+                    active ? "text-(--color-primary)" : "text-slate-500"
                   }`}
                 >
                   <i
                     className={`${item.icon} text-lg ${
-                      active
-                        ? "text-[var(--color-primary)]"
-                        : "text-slate-400"
+                      active ? "text-(--color-primary)" : "text-slate-400"
                     }`}
                     aria-hidden
                   />
@@ -154,7 +157,7 @@ export function AppShell({ children }: AppShellProps) {
             icon="pi pi-plus"
             rounded
             aria-label="Törn starten"
-            className="!fixed !bottom-20 !left-1/2 !z-40 !h-16 !w-16 !-translate-x-1/2 !rounded-full !border-none !bg-[var(--color-primary)] !text-xl !text-white !shadow-2xl hover:!bg-[var(--color-primary-strong)] md:!hidden"
+            className="fixed bottom-20 left-1/2 z-40 h-16 w-16 -translate-x-1/2 rounded-full border-none bg-(--color-primary) text-xl text-white shadow-2xl hover:bg-(--color-primary-strong) md:hidden"
             onClick={() => router.push("/new-trip")}
           />
         </>

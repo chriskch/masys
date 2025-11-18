@@ -2,33 +2,19 @@
 
 import { Card } from "primereact/card";
 import { Tag } from "primereact/tag";
-import { DISTANCE_RULES, BONUS_RULES } from "../../data/points-config";
-
-const bonusCategoryLabels: Record<
-  (typeof BONUS_RULES)[number]["category"],
-  { title: string; description: string; severity: "info" | "success" | "warning" }
-> = {
-  operation: {
-    title: "Manöver & Betrieb",
-    description:
-      "Aktionen, die während des Betriebs oder Manövriers stattfinden und zusätzliche Punkte verleihen.",
-    severity: "info",
-  },
-  voyage: {
-    title: "Törn-Boni",
-    description:
-      "Zusatzpunkte für besondere Reiseabschnitte, Langtörns oder Vereinsaktionen.",
-    severity: "success",
-  },
-  volunteering: {
-    title: "Ehrenamt & Engagement",
-    description:
-      "Punkte für Trainer*innen, Regatta-Funktionen und andere ehrenamtliche Aufgaben.",
-    severity: "warning",
-  },
-};
+import {
+  usePointsStore,
+  type BonusRule,
+} from "../../lib/stores/points-store";
 
 export default function PointsRulesPage() {
+  const { distanceRules, bonusRules, bonusCategoryMeta } = usePointsStore(
+    (state) => ({
+      distanceRules: state.distanceRules,
+      bonusRules: state.bonusRules,
+      bonusCategoryMeta: state.bonusCategoryMeta,
+    })
+  );
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
@@ -45,16 +31,16 @@ export default function PointsRulesPage() {
         </p>
       </header>
 
-      <Card className="border-none !bg-white shadow-sm">
+      <Card className="border-none bg-white! shadow-sm">
         <h2 className="text-2xl font-semibold text-slate-900">
           Distanzbasierte Punkte
         </h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Trage in der Törn-Erfassung deine Kilometer nach Gewässertyp ein. Das
-          System berechnet die Punkte automatisch.
-        </p>
-        <div className="mt-4 divide-y divide-slate-200">
-          {DISTANCE_RULES.map((rule) => (
+          <p className="mt-1 text-sm text-slate-500">
+            Trage in der Törn-Erfassung deine Kilometer nach Gewässertyp ein. Das
+            System berechnet die Punkte automatisch.
+          </p>
+          <div className="mt-4 divide-y divide-slate-200">
+          {distanceRules.map((rule) => (
             <div
               key={rule.id}
               className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between"
@@ -64,7 +50,9 @@ export default function PointsRulesPage() {
                 <p className="text-sm text-slate-500">{rule.description}</p>
               </div>
               <Tag
-                value={`${rule.pointsPerKm} Punkt${rule.pointsPerKm === 1 ? "" : "e"} pro km`}
+                value={`${rule.pointsPerKm} Punkt${
+                  rule.pointsPerKm === 1 ? "" : "e"
+                } pro km`}
                 severity="info"
                 className="w-fit"
               />
@@ -74,25 +62,17 @@ export default function PointsRulesPage() {
       </Card>
 
       {Object.entries(
-        BONUS_RULES.reduce(
-          (acc, rule) => {
-            const bucket = acc[rule.category] ?? [];
-            bucket.push(rule);
-            acc[rule.category] = bucket;
-            return acc;
-          },
-          {} as Record<
-            (typeof BONUS_RULES)[number]["category"],
-            (typeof BONUS_RULES)[number][]
-          >,
-        ),
+        bonusRules.reduce((acc, rule) => {
+          const bucket = acc[rule.category] ?? [];
+          bucket.push(rule);
+          acc[rule.category] = bucket;
+          return acc;
+        }, {} as Record<BonusRule["category"], BonusRule[]>)
       ).map(([category, rules]) => {
-        const meta = bonusCategoryLabels[category as keyof typeof bonusCategoryLabels];
+        const meta =
+          bonusCategoryMeta[category as keyof typeof bonusCategoryMeta];
         return (
-          <Card
-            key={category}
-            className="border-none !bg-white shadow-sm"
-          >
+          <Card key={category} className="border-none bg-white! shadow-sm">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-2xl font-semibold text-slate-900">
@@ -114,7 +94,7 @@ export default function PointsRulesPage() {
                   }
                   if (rule.points.perOccurrence) {
                     parts.push(
-                      `${rule.points.perOccurrence} Punkte pro ${rule.unitLabel}`,
+                      `${rule.points.perOccurrence} Punkte pro ${rule.unitLabel}`
                     );
                   }
                   pointsLabel = parts.join(" • ");
@@ -140,7 +120,6 @@ export default function PointsRulesPage() {
           </Card>
         );
       })}
-
     </div>
   );
 }
