@@ -1,4 +1,4 @@
-import type { DistanceRule } from "../../lib/stores/points-store";
+import type { DistanceRule, BonusRule } from "../../lib/stores/points-store";
 
 export type CrewMember = {
   name: string;
@@ -8,18 +8,18 @@ export type CrewMember = {
   accountId?: string | null;
 };
 
-export type DistanceValues = Record<DistanceRule["id"], number>;
+export type TripSegment = {
+  id: string;
+  name: string;
+  distanceRuleId: DistanceRule["id"] | null;
+  distanceKm: number;
+  bonuses: SegmentBonusEntry[];
+};
 
-export type BonusValues = {
-  engineKm: number;
-  mastHandling: number;
-  lockCount: number;
-  longVoyageBase: boolean;
-  longVoyageExtraHundreds: number;
-  trailerTransports: number;
-  communityDays: number;
-  youthTrainingSessions: number;
-  regattaDutyDays: number;
+export type SegmentBonusEntry = {
+  id: string;
+  ruleId: BonusRule["id"];
+  value: number;
 };
 
 export type TripFormState = {
@@ -31,8 +31,7 @@ export type TripFormState = {
   crewMembers: CrewMember[];
   weather: string | null;
   notes: string;
-  distances: DistanceValues;
-  bonus: BonusValues;
+  segments: TripSegment[];
   isTraining: boolean;
 };
 

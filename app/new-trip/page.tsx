@@ -18,10 +18,9 @@ import {
 } from "../../lib/stores/points-store";
 import {
   type AutoCompleteCompleteMethodParams,
-  type BonusValues,
   type CrewMember,
-  type DistanceValues,
   type TripFormState,
+  type TripSegment,
 } from "./types";
 import { BasicsStep } from "../../components/new-trip/BasicsStep";
 import { CrewStep } from "../../components/new-trip/CrewStep";
@@ -34,23 +33,23 @@ import { TipsSidebar } from "../../components/new-trip/TipsSidebar";
 import { StepFooter } from "../../components/new-trip/StepFooter";
 import { NewTripHeader } from "../../components/new-trip/NewTripHeader";
 
-const buildInitialDistances = (rules: DistanceRule[]): DistanceValues =>
-  rules.reduce((acc, rule) => {
-    acc[rule.id] = 0;
-    return acc;
-  }, {} as DistanceValues);
-
-const initialBonusValues: BonusValues = {
-  engineKm: 0,
-  mastHandling: 0,
-  lockCount: 0,
-  longVoyageBase: false,
-  longVoyageExtraHundreds: 0,
-  trailerTransports: 0,
-  communityDays: 0,
-  youthTrainingSessions: 0,
-  regattaDutyDays: 0,
+const createId = (prefix: string) => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `${prefix}-${Math.random().toString(36).slice(2, 10)}-${Date.now()}`;
 };
+
+const createInitialSegment = (
+  rules: DistanceRule[],
+  index = 0
+): TripSegment => ({
+  id: createId("segment"),
+  name: `Abschnitt ${index + 1}`,
+  distanceRuleId: rules[0]?.id ?? null,
+  distanceKm: 0,
+  bonuses: [],
+});
 
 export default function NewTripPage() {
   const router = useRouter();
@@ -67,8 +66,7 @@ export default function NewTripPage() {
     crewMembers: [],
     weather: null,
     notes: "",
-    distances: buildInitialDistances(distanceRules),
-    bonus: { ...initialBonusValues },
+    segments: [createInitialSegment(distanceRules)],
     isTraining: false,
   }));
   const [newCrewMember, setNewCrewMember] = useState<CrewMember>({
@@ -170,15 +168,23 @@ export default function NewTripPage() {
     [tracks]
   );
 
+  const bonusRuleMap = useMemo(
+    () => new Map(bonusRules.map((rule) => [rule.id, rule])),
+    [bonusRules]
+  );
+
   const pointsBreakdown = useMemo<PointsBreakdownItem[]>(() => {
     const breakdown: PointsBreakdownItem[] = [];
 
     distanceRules.forEach((rule: DistanceRule) => {
-      const km = formData.distances[rule.id] ?? 0;
+      const km = formData.segments
+        .filter((segment) => segment.distanceRuleId === rule.id)
+        .reduce((sum, segment) => sum + (segment.distanceKm || 0), 0);
+
       if (km > 0) {
         const points = Math.round(km * rule.pointsPerKm * 100) / 100;
         breakdown.push({
-          id: rule.id,
+          id: `distance-${rule.id}`,
           label: rule.title,
           points,
           detail: `${km} km × ${rule.pointsPerKm} Punkte`,
@@ -186,111 +192,64 @@ export default function NewTripPage() {
       }
     });
 
-    bonusRules.forEach((rule: BonusRule) => {
-      const { bonus } = formData;
-      let value = 0;
-      let detail = "";
+    const bonusValueTotals = new Map<BonusRule["id"], number>();
+    formData.segments.forEach((segment) => {
+      segment.bonuses.forEach((bonus) => {
+        const rule = bonusRuleMap.get(bonus.ruleId);
+        if (!rule) {
+          return;
+        }
+        const prev = bonusValueTotals.get(bonus.ruleId) ?? 0;
+        bonusValueTotals.set(bonus.ruleId, prev + (bonus.value ?? 0));
+      });
+    });
 
-      switch (rule.id) {
-        case "engineKm": {
-          const km = bonus.engineKm;
-          if (km > 0 && typeof rule.points !== "number" && rule.points.perKm) {
-            value = Math.round(km * rule.points.perKm * 100) / 100;
-            detail = `${km} km × ${rule.points.perKm} Punkte`;
-          }
-          break;
-        }
-        case "mastHandling": {
-          const count = bonus.mastHandling;
-          if (
-            count > 0 &&
-            typeof rule.points !== "number" &&
-            rule.points.perOccurrence
-          ) {
-            value = count * rule.points.perOccurrence;
-            detail = `${count} Vorgänge × ${rule.points.perOccurrence} Punkte`;
-          }
-          break;
-        }
-        case "lock": {
-          const count = bonus.lockCount;
-          if (
-            count > 0 &&
-            typeof rule.points !== "number" &&
-            rule.points.perOccurrence
-          ) {
-            value = count * rule.points.perOccurrence;
-            detail = `${count} Schleusen × ${rule.points.perOccurrence} Punkte`;
-          }
-          break;
-        }
-        case "longVoyageBase": {
-          if (bonus.longVoyageBase && typeof rule.points === "number") {
-            value = rule.points;
-            detail = "Langtörn über 200 km";
-          }
-          break;
-        }
-        case "longVoyageExtra": {
-          const extra = bonus.longVoyageExtraHundreds;
-          if (
-            extra > 0 &&
-            typeof rule.points !== "number" &&
-            rule.points.perOccurrence
-          ) {
-            value = extra * rule.points.perOccurrence;
-            detail = `${extra} × zusätzliche 100 km`;
-          }
-          break;
-        }
-        case "trailerTransport": {
-          const transports = bonus.trailerTransports;
-          if (transports > 0 && typeof rule.points === "number") {
-            value = transports * rule.points;
-            detail = `${transports} Transport(e) × ${rule.points} Punkte`;
-          }
-          break;
-        }
-        case "communityEvent": {
-          const days = bonus.communityDays;
-          if (days > 0 && typeof rule.points === "number") {
-            value = days * rule.points;
-            detail = `${days} Tag(e) Gemeinschaftstörn`;
-          }
-          break;
-        }
-        case "youthTraining": {
-          const sessions = bonus.youthTrainingSessions;
-          if (sessions > 0 && typeof rule.points === "number") {
-            value = sessions * rule.points;
-            detail = `${sessions} Trainingseinheiten`;
-          }
-          break;
-        }
-        case "regattaDuty": {
-          const days = bonus.regattaDutyDays;
-          if (days > 0 && typeof rule.points === "number") {
-            value = days * rule.points;
-            detail = `${days} Regattatag(e)`;
-          }
-          break;
-        }
-        default:
-          break;
+    bonusValueTotals.forEach((value, ruleId) => {
+      if (value <= 0) {
+        return;
       }
-
-      if (value > 0) {
+      const rule = bonusRuleMap.get(ruleId);
+      if (!rule) {
+        return;
+      }
+      if (typeof rule.points === "number") {
+        const activations = value;
+        const points = activations * rule.points;
         breakdown.push({
-          id: rule.id,
+          id: `bonus-${rule.id}`,
           label: rule.title,
-          points: Math.round(value * 100) / 100,
-          detail,
+          points,
+          detail:
+            activations === 1
+              ? "Einmal aktiviert"
+              : `${activations}× aktiviert`,
+        });
+        return;
+      }
+      if (rule.points.perKm) {
+        const points = Math.round(value * rule.points.perKm * 100) / 100;
+        breakdown.push({
+          id: `bonus-${rule.id}`,
+          label: rule.title,
+          points,
+          detail: `${value} km × ${rule.points.perKm} Punkte`,
+        });
+        return;
+      }
+      if (rule.points.perOccurrence) {
+        const points = value * rule.points.perOccurrence;
+        breakdown.push({
+          id: `bonus-${rule.id}`,
+          label: rule.title,
+          points,
+          detail: `${value} ${rule.unitLabel} × ${rule.points.perOccurrence} Punkte`,
         });
       }
     });
 
     return breakdown;
-  }, [bonusRules, distanceRules, formData]);
+  }, [bonusRuleMap, distanceRules, formData.segments]);
+
 
   const totalPoints = useMemo(
     () =>
@@ -329,14 +288,6 @@ export default function NewTripPage() {
       };
     });
   };
-
-  const engineRule = bonusRules.find(
-    (rule: BonusRule) => rule.id === "engineKm"
-  );
-  const enginePointsPerKm =
-    typeof engineRule?.points === "number"
-      ? engineRule?.points ?? 0.2
-      : engineRule?.points?.perKm ?? 0.2;
 
   const addCrewMember = (member: CrewMember) => {
     if (!member.name.trim()) {
@@ -518,8 +469,8 @@ export default function NewTripPage() {
         <PointsStep
           formData={formData}
           setFormData={setFormData}
-          enginePointsPerKm={enginePointsPerKm}
           distanceRules={distanceRules}
+          bonusRules={bonusRules}
         />
       ) : null}
 
@@ -529,6 +480,8 @@ export default function NewTripPage() {
           pointsBreakdown={pointsBreakdown}
           totalPoints={totalPoints}
           selectedTracks={selectedTracks}
+          distanceRules={distanceRules}
+          bonusRules={bonusRules}
         />
       ) : null}
 

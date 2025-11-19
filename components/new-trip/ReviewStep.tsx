@@ -4,6 +4,7 @@ import { Card } from "primereact/card";
 import { Tag } from "primereact/tag";
 import type { TripFormState } from "../../app/new-trip/types";
 import type { GpsTrack } from "../../lib/stores/logbook-store";
+import type { DistanceRule, BonusRule } from "../../lib/stores/points-store";
 import { formatDurationMinutes } from "../../lib/stores/logbook-store";
 
 export type PointsBreakdownItem = {
@@ -18,6 +19,8 @@ type ReviewStepProps = {
   pointsBreakdown: PointsBreakdownItem[];
   totalPoints: number;
   selectedTracks: GpsTrack[];
+  distanceRules: DistanceRule[];
+  bonusRules: BonusRule[];
 };
 
 export const ReviewStep = ({
@@ -25,6 +28,8 @@ export const ReviewStep = ({
   pointsBreakdown,
   totalPoints,
   selectedTracks,
+  distanceRules,
+  bonusRules,
 }: ReviewStepProps) => (
   <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
     <Card className="border-none bg-white shadow-sm">
@@ -67,6 +72,75 @@ export const ReviewStep = ({
               </div>
             ))
           )}
+        </div>
+
+        <div className="rounded-xl border border-slate-200 px-4 py-3">
+          <p className="text-xs uppercase tracking-wide text-slate-400">
+            Abschnitte
+          </p>
+          <div className="mt-2 flex flex-col gap-3 text-sm text-slate-600">
+            {formData.segments.length === 0 ? (
+              <p className="text-xs text-slate-500">Keine Abschnitte definiert.</p>
+            ) : (
+              formData.segments.map((segment, index) => {
+                const rule = distanceRules.find(
+                  (distanceRule) => distanceRule.id === segment.distanceRuleId
+                );
+                return (
+                  <div
+                    key={segment.id}
+                    className="rounded-lg border border-slate-200 px-3 py-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-slate-900">
+                          {segment.name || `Abschnitt ${index + 1}`}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {rule ? rule.title : "Kein Gewässertyp ausgewählt"}
+                        </p>
+                      </div>
+                      <span className="text-sm font-semibold text-slate-900">
+                        {segment.distanceKm.toFixed(1)} km
+                      </span>
+                    </div>
+                    <div className="mt-2">
+                      {segment.bonuses.length === 0 ? (
+                        <p className="text-xs text-slate-500">
+                          Keine Bonusaktionen für diesen Abschnitt.
+                        </p>
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {segment.bonuses.map((bonus) => {
+                            const bonusRule = bonusRules.find(
+                              (ruleItem) => ruleItem.id === bonus.ruleId
+                            );
+                            if (!bonusRule) {
+                              return null;
+                            }
+                            let valueLabel = "";
+                            if (typeof bonusRule.points === "number") {
+                              valueLabel = bonus.value > 0 ? "Aktiv" : "Inaktiv";
+                            } else if (bonusRule.points.perKm) {
+                              valueLabel = `${bonus.value} km`;
+                            } else if (bonusRule.points.perOccurrence) {
+                              valueLabel = `${bonus.value} ${bonusRule.unitLabel}`;
+                            }
+                            return (
+                              <Tag
+                                key={bonus.id}
+                                value={`${bonusRule.title} • ${valueLabel}`}
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
 
         <div className="rounded-xl border border-slate-200 px-4 py-3">
