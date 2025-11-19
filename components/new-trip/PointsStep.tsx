@@ -21,6 +21,8 @@ type PointsStepProps = {
   bonusRules: BonusRule[];
 };
 
+type VariableBonusPoints = Exclude<BonusRule["points"], number>;
+
 const createId = (prefix: string) =>
   typeof crypto !== "undefined" && crypto.randomUUID
     ? crypto.randomUUID()
@@ -42,6 +44,11 @@ const createBonusEntry = (ruleId: BonusRule["id"], isBoolean: boolean): SegmentB
   ruleId,
   value: isBoolean ? 1 : 0,
 });
+
+const getBonusPointsConfig = (
+  points: BonusRule["points"]
+): VariableBonusPoints | undefined =>
+  typeof points === "number" ? undefined : points;
 
 export const PointsStep = ({
   formData,
@@ -263,8 +270,9 @@ export const PointsStep = ({
                       if (!rule) {
                         return null;
                       }
-                      const isBoolean = typeof rule.points === "number";
-                      const isPerKm = !isBoolean && !!rule.points.perKm;
+                      const pointsConfig = getBonusPointsConfig(rule.points);
+                      const isBoolean = !pointsConfig;
+                      const isPerKm = !!pointsConfig?.perKm;
                       const unitLabel = isBoolean
                         ? ""
                         : isPerKm
