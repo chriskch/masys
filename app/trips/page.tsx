@@ -119,7 +119,7 @@ export default function TripsPage() {
     if (filteredTrips.length === 0) {
       return;
     }
-    const header = [
+    const header: string[] = [
       "ID",
       "Titel",
       "Boot",
@@ -130,7 +130,7 @@ export default function TripsPage() {
       "Datum",
       "Status",
     ];
-    const rows = filteredTrips.map((trip: Trip) => [
+    const rows: string[][] = filteredTrips.map((trip: Trip) => [
       trip.id,
       trip.title,
       trip.boat,
@@ -143,8 +143,8 @@ export default function TripsPage() {
     ]);
 
     const csv = [header, ...rows]
-      .map((cols) =>
-        cols.map((col) => `"${String(col).replace(/"/g, '""')}"`).join(";")
+      .map((cols: string[]) =>
+        cols.map((col: string) => `"${col.replace(/"/g, '""')}"`).join(";")
       )
       .join("\n");
 

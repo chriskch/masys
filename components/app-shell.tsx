@@ -28,14 +28,15 @@ export function AppShell({ children }: AppShellProps) {
 
   const hideNavigation = useMemo(
     () =>
-      hideNavPaths.some((blockedPath) =>
+      hideNavPaths.some((blockedPath: string) =>
         pathname === blockedPath ? true : pathname.startsWith(`${blockedPath}/`)
       ),
     [hideNavPaths, pathname]
   );
 
   const mobileNavItems = useMemo(
-    () => navItems.filter((item) => item.href !== "/new-trip"),
+    () =>
+      navItems.filter((item: { href: string }) => item.href !== "/new-trip"),
     [navItems]
   );
 
@@ -64,7 +65,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-50 text-slate-900 md:flex-row">
       {!hideNavigation && (
-        <aside className="sticky top-0 hidden h-screen w-64 flex-shrink-0 flex-col border-r border-slate-200 bg-white px-6 py-8 shadow-sm md:flex">
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white px-6 py-8 shadow-sm md:flex">
           <div className="flex flex-col items-center">
             <Image
               src="/icon.png"
@@ -83,28 +84,30 @@ export function AppShell({ children }: AppShellProps) {
           </div>
 
           <nav className="mt-10 flex flex-1 flex-col gap-1">
-            {navItems.map((item) => {
-              const active = isActivePath(item.href, pathname);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
-                    active
-                      ? "bg-[rgba(1,168,10,0.12)] text-(--color-primary)"
-                      : "text-slate-600 hover:bg-slate-100"
-                  }`}
-                >
-                  <i
-                    className={`${item.icon} text-lg ${
-                      active ? "text-(--color-primary)" : "text-slate-500"
+            {navItems.map(
+              (item: { href: string; icon: string; label: string }) => {
+                const active = isActivePath(item.href, pathname);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-[rgba(1,168,10,0.12)] text-(--color-primary)"
+                        : "text-slate-600 hover:bg-slate-100"
                     }`}
-                    aria-hidden
-                  />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+                  >
+                    <i
+                      className={`${item.icon} text-lg ${
+                        active ? "text-(--color-primary)" : "text-slate-500"
+                      }`}
+                      aria-hidden
+                    />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              }
+            )}
           </nav>
 
           <Button
@@ -131,26 +134,28 @@ export function AppShell({ children }: AppShellProps) {
       {!hideNavigation && (
         <>
           <nav className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-around rounded-full border border-white/80 bg-white/90 px-4 py-3 shadow-2xl backdrop-blur-md md:hidden">
-            {mobileNavItems.map((item) => {
-              const active = isActivePath(item.href, pathname);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex flex-col items-center gap-1 rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
-                    active ? "text-(--color-primary)" : "text-slate-500"
-                  }`}
-                >
-                  <i
-                    className={`${item.icon} text-lg ${
-                      active ? "text-(--color-primary)" : "text-slate-400"
+            {mobileNavItems.map(
+              (item: { href: string; icon: string; label: string }) => {
+                const active = isActivePath(item.href, pathname);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex flex-col items-center gap-1 rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
+                      active ? "text-(--color-primary)" : "text-slate-500"
                     }`}
-                    aria-hidden
-                  />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+                  >
+                    <i
+                      className={`${item.icon} text-lg ${
+                        active ? "text-(--color-primary)" : "text-slate-400"
+                      }`}
+                      aria-hidden
+                    />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              }
+            )}
           </nav>
 
           <Button

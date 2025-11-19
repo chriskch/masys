@@ -39,6 +39,7 @@ export type Trip = {
   crew: number;
   status: "Abgeschlossen" | "In Planung" | "Auswertung";
   ownerId: string;
+  createdAt?: string;
 };
 
 export type TrainingCrewGroup = {
@@ -248,10 +249,14 @@ export type LogbookStore = {
   trainingGroups: TrainingCrewGroup[];
   addTrack: (track: GpsTrack) => void;
   removeTrack: (id: string) => void;
-  addDelegate: (payload: { accountId: string; canRead: boolean; canWrite: boolean }) => void;
+  addDelegate: (payload: {
+    accountId: string;
+    canRead: boolean;
+    canWrite: boolean;
+  }) => void;
   updateDelegatePermissions: (
     id: string,
-    permissions: { canRead?: boolean; canWrite?: boolean },
+    permissions: { canRead?: boolean; canWrite?: boolean }
   ) => void;
   removeDelegate: (id: string) => void;
 };
@@ -278,12 +283,14 @@ const logbookStore = createStore<LogbookStore>((set) => ({
     })),
   addDelegate: ({ accountId, canRead, canWrite }) =>
     set((state) => {
-      const account = state.accounts.find((account) => account.id === accountId);
+      const account = state.accounts.find(
+        (account) => account.id === accountId
+      );
       if (!account) {
         return state;
       }
       const existingIndex = state.delegates.findIndex(
-        (delegate) => delegate.accountId === accountId,
+        (delegate) => delegate.accountId === accountId
       );
       const delegateRecord: Delegate = {
         id:
@@ -340,19 +347,21 @@ const getCachedServerSnapshot = (() => {
   };
 })();
 
-const identitySelector = <T,>(state: T) => state;
+const identitySelector = <T>(state: T) => state;
 const defaultEquality = Object.is;
 
 export const useLogbookStore = <T = LogbookStore>(
-  selector: (state: LogbookStore) => T = identitySelector as (state: LogbookStore) => T,
-  equalityFn: (a: T, b: T) => boolean = defaultEquality,
+  selector: (state: LogbookStore) => T = identitySelector as (
+    state: LogbookStore
+  ) => T,
+  equalityFn: (a: T, b: T) => boolean = defaultEquality
 ) => {
   const selectedSlice = useSyncExternalStoreWithSelector(
     logbookStore.subscribe,
     logbookStore.getState,
     getCachedServerSnapshot,
     selector,
-    equalityFn,
+    equalityFn
   );
 
   useDebugValue(selectedSlice);

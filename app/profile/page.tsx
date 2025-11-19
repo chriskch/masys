@@ -17,7 +17,10 @@ import {
   type GpsTrack,
   type Delegate,
 } from "../../lib/stores/logbook-store";
-import { useProfileStore } from "../../lib/stores/profile-store";
+import {
+  useProfileStore,
+  type ProfileStat,
+} from "../../lib/stores/profile-store";
 
 type AutoCompleteCompleteMethodParams = {
   originalEvent: unknown;
@@ -235,7 +238,7 @@ export default function ProfilePage() {
       <Card className="border-none bg-white! shadow-sm">
         <h2 className="text-2xl font-semibold text-slate-900">Statistiken</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
+          {stats.map((stat: ProfileStat) => (
             <div
               key={stat.label}
               className="rounded-xl border border-slate-200 px-4 py-3"

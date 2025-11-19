@@ -11,7 +11,11 @@ import {
   type GpsTrack,
   type TrainingCrewGroup,
 } from "../../lib/stores/logbook-store";
-import { usePointsStore, type DistanceRule } from "../../lib/stores/points-store";
+import {
+  usePointsStore,
+  type DistanceRule,
+  type BonusRule,
+} from "../../lib/stores/points-store";
 import {
   type AutoCompleteCompleteMethodParams,
   type BonusValues,
@@ -169,7 +173,7 @@ export default function NewTripPage() {
   const pointsBreakdown = useMemo<PointsBreakdownItem[]>(() => {
     const breakdown: PointsBreakdownItem[] = [];
 
-    distanceRules.forEach((rule) => {
+    distanceRules.forEach((rule: DistanceRule) => {
       const km = formData.distances[rule.id] ?? 0;
       if (km > 0) {
         const points = Math.round(km * rule.pointsPerKm * 100) / 100;
@@ -182,7 +186,7 @@ export default function NewTripPage() {
       }
     });
 
-    bonusRules.forEach((rule) => {
+    bonusRules.forEach((rule: BonusRule) => {
       const { bonus } = formData;
       let value = 0;
       let detail = "";
@@ -326,7 +330,9 @@ export default function NewTripPage() {
     });
   };
 
-  const engineRule = bonusRules.find((rule) => rule.id === "engineKm");
+  const engineRule = bonusRules.find(
+    (rule: BonusRule) => rule.id === "engineKm"
+  );
   const enginePointsPerKm =
     typeof engineRule?.points === "number"
       ? engineRule?.points ?? 0.2
@@ -400,9 +406,7 @@ export default function NewTripPage() {
     return accounts.filter((account: AccountProfile) => {
       const lowerName = account.name.toLowerCase();
       const lowerEmail = account.email.toLowerCase();
-      return (
-        lowerName.includes(normalized) || lowerEmail.includes(normalized)
-      );
+      return lowerName.includes(normalized) || lowerEmail.includes(normalized);
     });
   };
 

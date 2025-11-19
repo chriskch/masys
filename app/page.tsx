@@ -6,8 +6,15 @@ import { Button } from "primereact/button";
 import { Card } from "primereact/card";
 import { Avatar } from "primereact/avatar";
 import { Tag } from "primereact/tag";
-import { useDashboardStore } from "../lib/stores/dashboard-store";
-import { useRankingStore } from "../lib/stores/ranking-store";
+import {
+  useDashboardStore,
+  type DashboardStat,
+  type RecentTripSummary,
+} from "../lib/stores/dashboard-store";
+import {
+  useRankingStore,
+  type RankingEntry,
+} from "../lib/stores/ranking-store";
 
 export default function Home() {
   const router = useRouter();
@@ -43,7 +50,7 @@ export default function Home() {
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
+        {stats.map((stat: DashboardStat) => (
           <Card key={stat.label} className="border-none bg-white shadow-sm">
             <div className="flex items-start justify-between">
               <div>
@@ -78,7 +85,7 @@ export default function Home() {
             </Link>
           </div>
           <div className="mt-5 flex flex-col gap-4">
-            {recentTrips.map((trip) => (
+            {recentTrips.map((trip: RecentTripSummary) => (
               <Link
                 key={trip.id}
                 href={`/trips/${trip.id}`}
@@ -90,19 +97,27 @@ export default function Home() {
                   </p>
                   <p className="text-xs text-slate-500">{trip.date}</p>
                   <div className="mt-2 flex items-center gap-4 text-xs text-slate-500">
-                <span className="flex items-center gap-2">
-                  <i className="pi pi-route text-(--color-primary-strong)" aria-hidden />
+                    <span className="flex items-center gap-2">
+                      <i
+                        className="pi pi-route text-(--color-primary-strong)"
+                        aria-hidden
+                      />
                       {trip.distance}
                     </span>
                     <span className="flex items-center gap-2">
-                      <i className="pi pi-clock text-(--color-accent-3)" aria-hidden />
+                      <i
+                        className="pi pi-clock text-(--color-accent-3)"
+                        aria-hidden
+                      />
                       {trip.duration}
                     </span>
                   </div>
                 </div>
                 <Tag
                   value={trip.status}
-                  severity={trip.status === "Abgeschlossen" ? "success" : "info"}
+                  severity={
+                    trip.status === "Abgeschlossen" ? "success" : "info"
+                  }
                 />
               </Link>
             ))}
@@ -113,12 +128,13 @@ export default function Home() {
       <Card className="border-none bg-white shadow-sm">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
-          <h2 className="text-2xl font-semibold text-slate-900">
-            Leaderboard Vorschau
-          </h2>
-          <p className="text-sm text-slate-500">
-            Bleib dran, um deinen Platz im Ranking des Brandenburger Segelvereins zu sichern.
-          </p>
+            <h2 className="text-2xl font-semibold text-slate-900">
+              Leaderboard Vorschau
+            </h2>
+            <p className="text-sm text-slate-500">
+              Bleib dran, um deinen Platz im Ranking des Brandenburger
+              Segelvereins zu sichern.
+            </p>
           </div>
           <Link
             href="/ranking"
@@ -129,7 +145,7 @@ export default function Home() {
         </div>
 
         <div className="mt-6 flex flex-col gap-3">
-          {leaderboardPreview.map((entry) => (
+          {leaderboardPreview.map((entry: RankingEntry) => (
             <div
               key={entry.rank}
               className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm transition-colors ${
@@ -145,7 +161,7 @@ export default function Home() {
                 <Avatar
                   label={entry.name
                     .split(" ")
-                    .map((token) => token[0])
+                    .map((token: string) => token[0])
                     .join("")
                     .slice(0, 2)}
                   className={`bg-slate-200 text-slate-700 ${
@@ -154,16 +170,24 @@ export default function Home() {
                 />
                 <div>
                   <p className="font-semibold text-slate-900">{entry.name}</p>
-                  <p className="text-xs text-slate-500">Brandenburger Segelverein</p>
+                  <p className="text-xs text-slate-500">
+                    Brandenburger Segelverein
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-6 text-xs text-slate-500">
                 <span className="flex items-center gap-2">
-                  <i className="pi pi-star text-(--color-primary)" aria-hidden />
+                  <i
+                    className="pi pi-star text-(--color-primary)"
+                    aria-hidden
+                  />
                   {entry.points} Punkte
                 </span>
                 <span className="flex items-center gap-2">
-                  <i className="pi pi-route text-(--color-accent-2)" aria-hidden />
+                  <i
+                    className="pi pi-route text-(--color-accent-2)"
+                    aria-hidden
+                  />
                   {entry.distance.toFixed(0)} km
                 </span>
               </div>

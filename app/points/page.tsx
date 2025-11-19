@@ -3,6 +3,7 @@
 import { Card } from "primereact/card";
 import { Tag } from "primereact/tag";
 import {
+  DistanceRule,
   usePointsStore,
   type BonusRule,
 } from "../../lib/stores/points-store";
@@ -35,12 +36,12 @@ export default function PointsRulesPage() {
         <h2 className="text-2xl font-semibold text-slate-900">
           Distanzbasierte Punkte
         </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Trage in der Törn-Erfassung deine Kilometer nach Gewässertyp ein. Das
-            System berechnet die Punkte automatisch.
-          </p>
-          <div className="mt-4 divide-y divide-slate-200">
-          {distanceRules.map((rule) => (
+        <p className="mt-1 text-sm text-slate-500">
+          Trage in der Törn-Erfassung deine Kilometer nach Gewässertyp ein. Das
+          System berechnet die Punkte automatisch.
+        </p>
+        <div className="mt-4 divide-y divide-slate-200">
+          {distanceRules.map((rule: DistanceRule) => (
             <div
               key={rule.id}
               className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between"
@@ -61,13 +62,21 @@ export default function PointsRulesPage() {
         </div>
       </Card>
 
-      {Object.entries(
-        bonusRules.reduce((acc, rule) => {
-          const bucket = acc[rule.category] ?? [];
-          bucket.push(rule);
-          acc[rule.category] = bucket;
-          return acc;
-        }, {} as Record<BonusRule["category"], BonusRule[]>)
+      {(
+        Object.entries(
+          bonusRules.reduce(
+            (
+              acc: Record<BonusRule["category"], BonusRule[]>,
+              rule: BonusRule
+            ) => {
+              const bucket = acc[rule.category] ?? [];
+              bucket.push(rule);
+              acc[rule.category] = bucket;
+              return acc;
+            },
+            {} as Record<BonusRule["category"], BonusRule[]>
+          )
+        ) as [BonusRule["category"], BonusRule[]][]
       ).map(([category, rules]) => {
         const meta =
           bonusCategoryMeta[category as keyof typeof bonusCategoryMeta];
@@ -83,7 +92,7 @@ export default function PointsRulesPage() {
               <Tag value="Bonus" severity={meta.severity} />
             </div>
             <div className="mt-4 divide-y divide-slate-200">
-              {rules.map((rule) => {
+              {rules.map((rule: BonusRule) => {
                 let pointsLabel: string;
                 if (typeof rule.points === "number") {
                   pointsLabel = `${rule.points} Punkte`;
