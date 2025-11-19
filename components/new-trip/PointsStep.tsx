@@ -222,10 +222,9 @@ export const PointsStep = ({
                   <div className="flex items-end justify-end">
                     <Button
                       icon="pi pi-trash"
-                      severity="secondary"
-                      text
-                      label="Abschnitt entfernen"
-                      className="text-slate-500 hover:text-rose-500"
+                      className="delete-icon-button"
+                      rounded
+                      aria-label={`Abschnitt ${index + 1} entfernen`}
                       onClick={() => handleRemoveSegment(segment.id)}
                     />
                   </div>

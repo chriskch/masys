@@ -450,8 +450,7 @@ export default function ProfilePage() {
                   <Button
                     icon="pi pi-trash"
                     rounded
-                    text
-                    severity="danger"
+                    className="delete-icon-button"
                     aria-label={`${delegate.name} entfernen`}
                     onClick={() => handleRemoveDelegate(delegate.id)}
                   />
@@ -587,10 +586,8 @@ export default function ProfilePage() {
                     </div>
                     <Button
                       icon="pi pi-trash"
-                      text
                       rounded
-                      severity="secondary"
-                      className="text-slate-400! hover:text-rose-500!"
+                      className="delete-icon-button"
                       aria-label="Track löschen"
                       onClick={() => removeTrack(track.id)}
                     />
