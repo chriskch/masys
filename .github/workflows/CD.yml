@@ -55,4 +55,4 @@ jobs:
         run: |
           mkdir -p /home/github/actions-runner/_work/masys/masys/deploy
           tar -xzf masys.tgz -C /home/github/actions-runner/_work/masys/masys/deploy
-          pm2 reload masys --update-env
+          /home/github/.nvm/versions/node/v24.12.0/bin/pm2 reload masys --update-env
