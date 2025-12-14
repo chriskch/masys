@@ -31,11 +31,18 @@ jobs:
           rm -rf artifact
           mkdir -p artifact
 
-          cp -r .next/standalone/* artifact/
+          # Kopiert ALLES aus standalone inkl. versteckter ".next"-Ordner
+          cp -a .next/standalone/. artifact/
+
+          # Static zusätzlich sicherstellen
           mkdir -p artifact/.next
-          cp -r .next/static artifact/.next/static
-          [ -d public ] && cp -r public artifact/public || true
-          [ -f ecosystem.config.js ] && cp ecosystem.config.js artifact/ecosystem.config.js || true
+          cp -a .next/static artifact/.next/static
+
+          # public optional
+          [ -d public ] && cp -a public artifact/public || true
+
+          # ecosystem config
+          [ -f ecosystem.config.js ] && cp -a ecosystem.config.js artifact/ecosystem.config.js || true
 
           tar -czf masys.tgz -C artifact .
 
