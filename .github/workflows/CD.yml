@@ -28,12 +28,15 @@ jobs:
 
       - name: Package standalone
         run: |
+          rm -rf artifact
           mkdir -p artifact
-          cp -r .next/standalone artifact/standalone
-          cp -r .next/static artifact/static
+
+          cp -r .next/standalone/* artifact/
+          mkdir -p artifact/.next
+          cp -r .next/static artifact/.next/static
           [ -d public ] && cp -r public artifact/public || true
-          # optional: keep ecosystem config with the artifact
-          [ -f ecosystem.config.js ] && cp ecosystem.config.js artifact/ || true
+          [ -f ecosystem.config.js ] && cp ecosystem.config.js artifact/ecosystem.config.js || true
+
           tar -czf masys.tgz -C artifact .
 
       - uses: actions/upload-artifact@v4
@@ -53,7 +56,31 @@ jobs:
           name: masys-build
 
       - name: Deploy
+        env:
+          APP_DIR: /home/github/applications/masys
+          RELEASE: ${{ github.sha }}
         run: |
-          mkdir -p /home/github/actions-runner/_work/masys/masys/deploy
-          tar -xzf masys.tgz -C /home/github/actions-runner/_work/masys/masys/deploy
-          /home/github/.nvm/versions/node/v24.12.0/bin/pm2 reload masys --update-env
+          set -euo pipefail
+          mkdir -p "$APP_DIR/releases" "$APP_DIR/shared"
+          mkdir -p "$APP_DIR/releases/$RELEASE"
+          tar -xzf masys.tgz -C "$APP_DIR/releases/$RELEASE"
+          ln -sf "$APP_DIR/shared/.env.production" "$APP_DIR/releases/$RELEASE/.env.production"
+          ln -sfn "$APP_DIR/releases/$RELEASE" "$APP_DIR/current"
+          ls -1dt "$APP_DIR/releases/"* 2>/dev/null | tail -n +6 | xargs -r rm -rf
+
+      - name: Restart (pm2 via nvm)
+        run: |
+          set -euo pipefail
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          nvm use 24.12.0
+
+          cd /home/github/applications/masys/current
+
+          if pm2 describe masys >/dev/null 2>&1; then
+            pm2 reload ecosystem.config.js --only masys --update-env
+          else
+            pm2 start ecosystem.config.js --only masys --update-env
+          fi
+
+          pm2 save
