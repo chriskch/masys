@@ -42,6 +42,7 @@ jobs:
           path: masys.tgz
 
   deploy:
+    needs: build
     runs-on: [self-hosted, "masys"]
     env:
       NODE_ENV: production
