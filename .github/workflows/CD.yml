@@ -51,11 +51,8 @@ jobs:
         with:
           name: masys-build
 
-      - name: Deploy files
+      - name: Deploy
         run: |
-          sudo mkdir -p /var/www/masys
-          sudo tar -xzf masys.tgz -C /var/www/masys
-          sudo chown -R github:github /var/www/masys
-
-      - name: Restart (zero-downtime reload if possible)
-        run: pm2 reload masys --update-env
+          mkdir -p /home/github/actions-runner/_work/masys/masys/deploy
+          tar -xzf masys.tgz -C /home/github/actions-runner/_work/masys/masys/deploy
+          pm2 reload masys --update-env
