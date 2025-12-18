@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
+import { InputText } from "primereact/inputtext";
 import { useNavigationStore } from "../lib/stores/navigation-store";
 import { useLogbookStore } from "../lib/stores/logbook-store";
 import { useSessionStore } from "../lib/stores/session-store";
@@ -29,15 +30,28 @@ export function AppShell({ children }: AppShellProps) {
     navItems: state.navItems,
     hideNavPaths: state.hideNavPaths,
   }));
-  const { incomingDelegations, accounts } = useLogbookStore((state) => ({
-    incomingDelegations: state.incomingDelegations,
-    accounts: state.accounts,
-  }));
+  const { incomingDelegations, accounts, updateAccount } = useLogbookStore(
+    (state) => ({
+      incomingDelegations: state.incomingDelegations,
+      accounts: state.accounts,
+      updateAccount: state.updateAccount,
+    })
+  );
   const { currentAccountId, setAccountId } = useSessionStore((state) => ({
     currentAccountId: state.currentAccountId,
     setAccountId: state.setAccountId,
   }));
   const [profileSwitchVisible, setProfileSwitchVisible] = useState(false);
+  const [profileCompletionVisible, setProfileCompletionVisible] =
+    useState(false);
+  const [profileCompletionForm, setProfileCompletionForm] = useState({
+    firstName: "",
+    lastName: "",
+  });
+  const [profileCompletionErrors, setProfileCompletionErrors] = useState<{
+    firstName?: string;
+    lastName?: string;
+  }>({});
 
   const hideNavigation = useMemo(
     () =>
@@ -67,14 +81,13 @@ export function AppShell({ children }: AppShellProps) {
     );
     addOption(
       currentAccountId,
-      primaryAccount
-        ? `${primaryAccount.name} (Mein Profil)`
-        : "Mein Profil"
+      primaryAccount ? `${primaryAccount.name} (Mein Profil)` : "Mein Profil"
     );
 
     incomingDelegations.forEach((access) => {
       const linkedAccount =
-        accounts.find((account) => account.id === access.ownerAccountId) ?? null;
+        accounts.find((account) => account.id === access.ownerAccountId) ??
+        null;
       const rights = access.canWrite ? "Lesen & Schreiben" : "Nur Lesen";
       addOption(
         access.ownerAccountId,
@@ -91,6 +104,44 @@ export function AppShell({ children }: AppShellProps) {
         ?.label ?? "Profil wählen",
     [profileOptions, currentAccountId]
   );
+
+  const currentAccount = useMemo(
+    () => accounts.find((account) => account.id === currentAccountId) ?? null,
+    [accounts, currentAccountId]
+  );
+
+  const needsProfileCompletion = useMemo(() => {
+    if (!currentAccount) return false;
+    const trimmedName = currentAccount.name?.trim() ?? "";
+    if (!trimmedName) return true;
+    return trimmedName.split(/\s+/).length < 2;
+  }, [currentAccount]);
+
+  useEffect(() => {
+    if (!needsProfileCompletion || !currentAccount) {
+      setProfileCompletionVisible(false);
+      return;
+    }
+    const nameParts = currentAccount.name?.trim().split(/\s+/) ?? [];
+    const firstName = nameParts[0] ?? "";
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+    setProfileCompletionForm({ firstName, lastName });
+    setProfileCompletionErrors({});
+    setProfileCompletionVisible(true);
+  }, [needsProfileCompletion, currentAccount]);
+
+  const handleProfileCompletionSave = () => {
+    if (!currentAccount) return;
+    const firstName = profileCompletionForm.firstName.trim();
+    const lastName = profileCompletionForm.lastName.trim();
+    const nextErrors: { firstName?: string; lastName?: string } = {};
+    if (!firstName) nextErrors.firstName = "Vorname ist erforderlich.";
+    if (!lastName) nextErrors.lastName = "Nachname ist erforderlich.";
+    setProfileCompletionErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+    updateAccount(currentAccount.id, { name: `${firstName} ${lastName}` });
+    setProfileCompletionVisible(false);
+  };
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
@@ -115,7 +166,7 @@ export function AppShell({ children }: AppShellProps) {
   }, []);
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-slate-50 text-slate-900 md:flex-row">
+    <div className="relative flex min-h-screen flex-col text-slate-900 md:flex-row">
       {!hideNavigation && (
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white px-6 py-8 shadow-sm md:flex">
           <div className="flex flex-col items-center">
@@ -306,6 +357,72 @@ export function AppShell({ children }: AppShellProps) {
               severity="secondary"
               size="small"
               onClick={() => setProfileSwitchVisible(false)}
+            />
+          </div>
+        </div>
+      </Dialog>
+
+      <Dialog
+        header="Profil vervollständigen"
+        visible={profileCompletionVisible}
+        className="w-full! sm:w-96!"
+        breakpoints={{ "960px": "75vw", "640px": "95vw" }}
+        closable={false}
+        dismissableMask={false}
+        draggable={false}
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-slate-500">
+            Bitte trage Vor- und Nachname ein, damit dein Profil vollständig
+            ist.
+          </p>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs uppercase tracking-wide text-slate-400">
+              Vorname
+            </label>
+            <InputText
+              value={profileCompletionForm.firstName}
+              onChange={(e) =>
+                setProfileCompletionForm((prev) => ({
+                  ...prev,
+                  firstName: e.target.value,
+                }))
+              }
+              className={profileCompletionErrors.firstName ? "p-invalid" : ""}
+              placeholder="Vorname"
+            />
+            {profileCompletionErrors.firstName && (
+              <small className="p-error">
+                {profileCompletionErrors.firstName}
+              </small>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs uppercase tracking-wide text-slate-400">
+              Nachname
+            </label>
+            <InputText
+              value={profileCompletionForm.lastName}
+              onChange={(e) =>
+                setProfileCompletionForm((prev) => ({
+                  ...prev,
+                  lastName: e.target.value,
+                }))
+              }
+              className={profileCompletionErrors.lastName ? "p-invalid" : ""}
+              placeholder="Nachname"
+            />
+            {profileCompletionErrors.lastName && (
+              <small className="p-error">
+                {profileCompletionErrors.lastName}
+              </small>
+            )}
+          </div>
+          <div className="flex justify-end">
+            <Button
+              label="Speichern"
+              icon="pi pi-save"
+              onClick={handleProfileCompletionSave}
             />
           </div>
         </div>

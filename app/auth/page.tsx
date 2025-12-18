@@ -5,21 +5,52 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card } from "primereact/card";
 import { InputText } from "primereact/inputtext";
-import { Password } from "primereact/password";
 import { Button } from "primereact/button";
-import { Divider } from "primereact/divider";
+import { useLogbookStore } from "@/lib/stores/logbook-store";
+import { useSessionStore } from "@/lib/stores/session-store";
 
 export default function AuthPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { updateAccount, accounts } = useLogbookStore((state) => ({
+    updateAccount: state.updateAccount,
+    accounts: state.accounts,
+  }));
+  const { currentAccountId } = useSessionStore((state) => ({
+    currentAccountId: state.currentAccountId,
+  }));
+
+  const currentAccount =
+    accounts.find((account) => account.id === currentAccountId) ?? null;
+  const [formState, setFormState] = useState({
+    firstName: "",
+    lastName: "",
+  });
+  const [errors, setErrors] = useState<{
+    firstName?: string;
+    lastName?: string;
+  }>({});
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const firstName = formState.firstName.trim();
+    const lastName = formState.lastName.trim();
+    const nextErrors: { firstName?: string; lastName?: string } = {};
+    if (!firstName) nextErrors.firstName = "Vorname ist erforderlich.";
+    if (!lastName) nextErrors.lastName = "Nachname ist erforderlich.";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+    if (currentAccount) {
+      updateAccount(currentAccount.id, { name: `${firstName} ${lastName}` });
+    }
+    router.push("/");
+  };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
+    <div className="flex min-h-screen items-center justify-center px-4 py-8">
       <Card className="w-full max-w-md border-none bg-white shadow-xl">
         <div className="flex flex-col gap-2 text-center">
           <p className="text-sm uppercase tracking-[0.35em] text-slate-400">
-            Login
+            Profil vervollständigen
           </p>
           <div className="flex justify-center">
             <Image
@@ -32,71 +63,50 @@ export default function AuthPage() {
             />
           </div>
           <p className="text-sm text-slate-500">
-            Melde dich an oder teste den Gastmodus, um das Logbuch
-            auszuprobieren.
+            Bitte trage Vor- und Nachname ein!
           </p>
         </div>
 
-        <form
-          className="mt-6 flex flex-col gap-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            router.push("/");
-          }}
-        >
+        <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-1 text-left">
             <label className="text-xs uppercase tracking-wide text-slate-400">
-              E-Mail
+              Vorname
             </label>
             <InputText
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="segler@verein.de"
-              required
+              value={formState.firstName}
+              onChange={(e) =>
+                setFormState((prev) => ({ ...prev, firstName: e.target.value }))
+              }
+              placeholder="Vorname"
+              className={errors.firstName ? "p-invalid" : ""}
             />
+            {errors.firstName && (
+              <small className="p-error">{errors.firstName}</small>
+            )}
           </div>
           <div className="flex flex-col gap-1 text-left">
             <label className="text-xs uppercase tracking-wide text-slate-400">
-              Passwort
+              Nachname
             </label>
-            <Password
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              toggleMask
-              feedback={false}
-              placeholder="********"
-              inputClassName="w-full"
-              required
+            <InputText
+              value={formState.lastName}
+              onChange={(e) =>
+                setFormState((prev) => ({ ...prev, lastName: e.target.value }))
+              }
+              placeholder="Nachname"
+              className={errors.lastName ? "p-invalid" : ""}
             />
+            {errors.lastName && (
+              <small className="p-error">{errors.lastName}</small>
+            )}
           </div>
           <Button
             type="submit"
-            label="Anmelden"
-            icon="pi pi-sign-in"
+            label="Weiter"
+            icon="pi pi-arrow-right"
             className="mt-2 w-full rounded-full border-none bg-(--color-primary) px-5 py-3 text-base font-semibold text-white hover:bg-(--color-primary-strong)"
           />
         </form>
-
-        <Divider align="center" className="my-6">
-          <span className="text-xs uppercase tracking-wide text-slate-400">
-            oder
-          </span>
-        </Divider>
-
-        <div className="flex flex-col gap-3">
-          <Button
-            label="Demo-Login"
-            icon="pi pi-play"
-            className="rounded-full border-none bg-(--color-accent-2) py-3 font-semibold text-white hover:bg-(--color-accent-3)"
-            onClick={() => router.push("/")}
-          />
-          <Button
-            label="Als Gast fortfahren"
-            icon="pi pi-compass"
-            className="rounded-full border border-[rgba(1,168,10,0.4)] bg-white px-5 py-3 font-semibold text-(--color-primary) hover:border-[rgba(1,168,10,0.6)] hover:bg-[rgba(1,168,10,0.05)]"
-            onClick={() => router.push("/")}
-          />
-        </div>
       </Card>
     </div>
   );
