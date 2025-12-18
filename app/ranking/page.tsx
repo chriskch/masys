@@ -64,36 +64,48 @@ export default function RankingPage() {
       </Card>
 
       <Card className="border-none bg-white! shadow-sm">
-        <h2 className="text-2xl font-semibold text-slate-900">Leaderboard</h2>
-        <DataTable
-          value={filteredRanking}
-          className="mt-4"
-          stripedRows
-          scrollable
-          scrollHeight="400px"
-          size="small"
-          rowClassName={(entry: RankingEntry) =>
-            entry.isYou ? "bg-[rgba(1,168,10,0.08)] text-slate-900" : ""
-          }
-        >
-          <Column field="rank" header="#" style={{ width: "3rem" }} />
-          <Column field="name" header="Name" />
-          <Column
-            field="points"
-            header="Punkte"
-            body={(entry: RankingEntry) => `${entry.points.toLocaleString("de-DE")} P`}
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-2xl font-semibold text-slate-900">Leaderboard</h2>
+          <Tag
+            value={`${filteredRanking.length} Eintrag${
+              filteredRanking.length === 1 ? "" : "e"
+            }`}
+            className="border-none! bg-[rgba(1,168,10,0.12)]! text-(--color-primary)!"
           />
-          <Column
-            field="distance"
-            header="Distanz"
-            body={(entry: RankingEntry) => `${entry.distance.toFixed(0)} km`}
-          />
-          <Column
-            field="hours"
-            header="Stunden"
-            body={(entry: RankingEntry) => `${entry.hours} h`}
-          />
-        </DataTable>
+        </div>
+        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
+          <DataTable
+            value={filteredRanking}
+            stripedRows
+            className="text-sm"
+            responsiveLayout="stack"
+            breakpoint="768px"
+            emptyMessage="Noch keine Einträge vorhanden."
+            rowClassName={(entry: RankingEntry) =>
+              entry.isYou ? "bg-[rgba(1,168,10,0.08)] text-slate-900" : ""
+            }
+          >
+            <Column field="rank" header="#" style={{ width: "3.5rem" }} />
+            <Column field="name" header="Name" />
+            <Column
+              field="points"
+              header="Punkte"
+              body={(entry: RankingEntry) =>
+                `${entry.points.toLocaleString("de-DE")} P`
+              }
+            />
+            <Column
+              field="distance"
+              header="Distanz"
+              body={(entry: RankingEntry) => `${entry.distance.toFixed(0)} km`}
+            />
+            <Column
+              field="hours"
+              header="Stunden"
+              body={(entry: RankingEntry) => `${entry.hours} h`}
+            />
+          </DataTable>
+        </div>
       </Card>
     </div>
   );

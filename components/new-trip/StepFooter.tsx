@@ -34,7 +34,7 @@ export const StepFooter = ({
       />
       <Button
         type="button"
-        label={isLastStep ? "Speichern & Törn starten" : "Weiter"}
+        label={isLastStep ? "Speichern" : "Weiter"}
         icon={isLastStep ? "pi pi-save" : "pi pi-arrow-right"}
         iconPos={isLastStep ? "left" : "right"}
         className="rounded-full border-none bg-(--color-primary) px-5 py-3 font-semibold text-white hover:bg-(--color-primary-strong)"

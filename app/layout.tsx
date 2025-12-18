@@ -6,6 +6,7 @@ import "./globals.css";
 import "primereact/resources/themes/lara-light-blue/theme.css";
 import "primeicons/primeicons.css"; // Icons
 import { AppShell } from "../components/app-shell";
+import { ToastProvider } from "../lib/context/ToastContext";
 
 const barlowCondensed = Barlow_Condensed({
   variable: "--font-barlow-condensed",
@@ -48,10 +49,13 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="MASYS Logbook" />
       </head>
       <body
+        suppressHydrationWarning
         className={`${barlowCondensed.variable} ${montserrat.variable} antialiased bg-slate-50`}
       >
         <PrimeReactProvider>
-          <AppShell>{children}</AppShell>
+          <ToastProvider>
+            <AppShell>{children}</AppShell>
+          </ToastProvider>
         </PrimeReactProvider>
       </body>
     </html>

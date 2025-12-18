@@ -15,7 +15,7 @@ export type RecentTripSummary = {
   date: string;
   distance: string;
   duration: string;
-  status: "Abgeschlossen" | "Auswertung" | "Geplant";
+  sectionCount: number;
 };
 
 export type DashboardStore = {
@@ -57,7 +57,7 @@ const initialRecentTrips: RecentTripSummary[] = [
     date: "12. Juni 2024",
     distance: "14,3 km",
     duration: "2 h 10 min",
-    status: "Abgeschlossen",
+    sectionCount: 2,
   },
   {
     id: "TR-1092",
@@ -65,7 +65,7 @@ const initialRecentTrips: RecentTripSummary[] = [
     date: "09. Juni 2024",
     distance: "11,1 km",
     duration: "1 h 45 min",
-    status: "Auswertung",
+    sectionCount: 2,
   },
   {
     id: "TR-1091",
@@ -73,7 +73,7 @@ const initialRecentTrips: RecentTripSummary[] = [
     date: "07. Juni 2024",
     distance: "38,6 km",
     duration: "6 h 05 min",
-    status: "Abgeschlossen",
+    sectionCount: 3,
   },
 ];
 

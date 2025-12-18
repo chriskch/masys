@@ -18,6 +18,7 @@ const navItems: NavItem[] = [
   { href: "/trips", icon: "pi pi-compass", label: "Törns" },
   { href: "/new-trip", icon: "pi pi-plus-circle", label: "Törn starten" },
   { href: "/ranking", icon: "pi pi-chart-line", label: "Rangliste" },
+  { href: "/admin/users", icon: "pi pi-shield", label: "Admin" },
   { href: "/profile", icon: "pi pi-user", label: "Profil" },
 ];
 

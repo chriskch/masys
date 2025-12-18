@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { Button } from "primereact/button";
 import { Card } from "primereact/card";
 import { Avatar } from "primereact/avatar";
@@ -9,12 +8,10 @@ import { ToggleButton } from "primereact/togglebutton";
 import { Checkbox } from "primereact/checkbox";
 import { Dialog } from "primereact/dialog";
 import { AutoComplete } from "primereact/autocomplete";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useLogbookStore,
-  formatDurationMinutes,
   type AccountProfile,
-  type GpsTrack,
   type Delegate,
 } from "../../lib/stores/logbook-store";
 import {
@@ -28,22 +25,17 @@ type AutoCompleteCompleteMethodParams = {
 };
 
 export default function ProfilePage() {
-  const router = useRouter();
   const {
     accounts,
-    tracks,
     delegates,
-    addTrack,
-    removeTrack,
+    incomingDelegations,
     addDelegate,
     updateDelegatePermissions,
     removeDelegate,
   } = useLogbookStore((state) => ({
     accounts: state.accounts,
-    tracks: state.tracks,
     delegates: state.delegates,
-    addTrack: state.addTrack,
-    removeTrack: state.removeTrack,
+    incomingDelegations: state.incomingDelegations,
     addDelegate: state.addDelegate,
     updateDelegatePermissions: state.updateDelegatePermissions,
     removeDelegate: state.removeDelegate,
@@ -51,9 +43,6 @@ export default function ProfilePage() {
   const stats = useProfileStore((state) => state.stats);
   const [offlineMode, setOfflineMode] = useState(true);
   const [unitMetric, setUnitMetric] = useState(true);
-  const [trackingActive, setTrackingActive] = useState(false);
-  const [trackingStart, setTrackingStart] = useState<Date | null>(null);
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [delegateForm, setDelegateForm] = useState({
     name: "",
     email: "",
@@ -68,21 +57,6 @@ export default function ProfilePage() {
   );
 
   useEffect(() => {
-    if (!(trackingActive || trackingStart)) {
-      return;
-    }
-    const interval = setInterval(() => {
-      if (!trackingStart) {
-        return;
-      }
-      setElapsedSeconds(
-        Math.max(0, Math.floor((Date.now() - trackingStart.getTime()) / 1000))
-      );
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [trackingActive, trackingStart]);
-
-  useEffect(() => {
     if (delegateForm.canWrite && !delegateForm.canRead) {
       setDelegateForm((prev) => ({ ...prev, canRead: true }));
     }
@@ -91,63 +65,6 @@ export default function ProfilePage() {
   useEffect(() => {
     setAccountSuggestions(accounts);
   }, [accounts]);
-
-  const simulatedDistanceKm = useMemo(() => {
-    if (!trackingActive) {
-      return 0;
-    }
-    const minutes = elapsedSeconds / 60;
-    return Number(Math.max(minutes * 0.45, 0.2).toFixed(1));
-  }, [elapsedSeconds, trackingActive]);
-
-  const elapsedLabel = useMemo(() => {
-    const hours = Math.floor(elapsedSeconds / 3600)
-      .toString()
-      .padStart(2, "0");
-    const minutes = Math.floor((elapsedSeconds % 3600) / 60)
-      .toString()
-      .padStart(2, "0");
-    const seconds = Math.floor(elapsedSeconds % 60)
-      .toString()
-      .padStart(2, "0");
-    return `${hours}:${minutes}:${seconds}`;
-  }, [elapsedSeconds]);
-
-  const handleStartTracking = () => {
-    setTrackingStart(new Date());
-    setElapsedSeconds(0);
-    setTrackingActive(true);
-  };
-
-  const resetTracking = () => {
-    setTrackingActive(false);
-    setTrackingStart(null);
-    setElapsedSeconds(0);
-  };
-
-  const handleSaveTracking = () => {
-    if (!trackingStart) {
-      return;
-    }
-    const durationMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
-    const newTrack: GpsTrack = {
-      id:
-        typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `track-${Date.now()}`,
-      title: `Direktaufnahme ${new Date().toLocaleDateString(
-        "de-DE"
-      )} ${new Date().toLocaleTimeString("de-DE", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}`,
-      startedAt: trackingStart.toISOString(),
-      durationMinutes,
-      distanceKm: simulatedDistanceKm > 0 ? simulatedDistanceKm : 0.2,
-    };
-    addTrack(newTrack);
-    resetTracking();
-  };
 
   const handleAddDelegate = () => {
     if (!selectedAccount) {
@@ -179,7 +96,7 @@ export default function ProfilePage() {
       accounts.filter(
         (account: AccountProfile) =>
           account.name.toLowerCase().includes(query) ||
-          account.email.toLowerCase().includes(query)
+          (account.email ?? "").toLowerCase().includes(query)
       )
     );
   };
@@ -187,7 +104,9 @@ export default function ProfilePage() {
   const accountItemTemplate = (account: AccountProfile) => (
     <div className="flex flex-col">
       <span className="text-sm font-medium text-slate-900">{account.name}</span>
-      <span className="text-xs text-slate-500">{account.email}</span>
+      <span className="text-xs text-slate-500">
+        {account.email ?? "Keine E-Mail hinterlegt"}
+      </span>
     </div>
   );
 
@@ -227,12 +146,12 @@ export default function ProfilePage() {
             </p>
           </div>
         </div>
-        <Button
+        {/* <Button
           label="Profil bearbeiten"
           icon="pi pi-user-edit"
           className="rounded-full! border-none! bg-slate-200! px-5! py-3! text-slate-700! hover:bg-slate-300!"
           onClick={() => router.push("/profile/edit")}
-        />
+        /> */}
       </header>
 
       <Card className="border-none bg-white! shadow-sm">
@@ -287,7 +206,7 @@ export default function ProfilePage() {
                 setDelegateForm((prev) => ({
                   ...prev,
                   name: account.name,
-                  email: account.email,
+                  email: account.email ?? "",
                 }));
               }}
             />
@@ -408,14 +327,12 @@ export default function ProfilePage() {
                   </p>
                   <p className="text-xs text-slate-500">{delegate.email}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                    <Tag
-                      value="Lesen"
-                      severity={delegate.canRead ? "success" : "secondary"}
-                    />
-                    <Tag
-                      value="Schreiben"
-                      severity={delegate.canWrite ? "warning" : "secondary"}
-                    />
+                    {delegate.canRead && (
+                      <Tag value="Lesen" severity="success" />
+                    )}
+                    {delegate.canWrite && (
+                      <Tag value="Schreiben" severity="warning" />
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-4">
@@ -463,139 +380,57 @@ export default function ProfilePage() {
 
       <Card className="border-none bg-white! shadow-sm">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <h2 className="text-2xl font-semibold text-slate-900">
-            GPS Tracking
-          </h2>
+          <div>
+            <h2 className="text-2xl font-semibold text-slate-900">
+              Meine Zugriffe
+            </h2>
+            <p className="text-sm text-slate-500">
+              Hier siehst du, welche Profile dir Leserechte oder Schreibrechte
+              erteilt haben.
+            </p>
+          </div>
           <Tag
-            value={
-              trackingActive
-                ? "Aufnahme läuft"
-                : `${tracks.length} Track${tracks.length === 1 ? "" : "s"}`
-            }
-            className={`border-none! ${
-              trackingActive
-                ? "bg-[rgba(94,1,168,0.15)]! text-(--color-accent-5)!"
-                : "bg-[rgba(1,168,10,0.12)]! text-(--color-primary)!"
+            value={`${incomingDelegations.length} Profil${
+              incomingDelegations.length === 1 ? "" : "e"
             }`}
+            className="border-none! bg-[rgba(1,168,10,0.12)]! text-(--color-primary)!"
           />
         </div>
-        <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-          <div className="rounded-2xl border border-slate-200 p-4">
-            {trackingActive && trackingStart ? (
-              <>
-                <p className="text-sm text-slate-500">
-                  Aufnahme seit{" "}
-                  {trackingStart.toLocaleTimeString("de-DE", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-400">
-                      Laufzeit
-                    </p>
-                    <p className="mt-1 text-lg font-semibold text-slate-900">
-                      {elapsedLabel}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-400">
-                      Distanz (∼)
-                    </p>
-                    <p className="mt-1 text-lg font-semibold text-slate-900">
-                      {simulatedDistanceKm.toFixed(1)} km
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-400">
-                      Geschwindigkeit (∼)
-                    </p>
-                    <p className="mt-1 text-lg font-semibold text-slate-900">
-                      {elapsedSeconds > 0
-                        ? `${Math.max(
-                            simulatedDistanceKm /
-                              Math.max(elapsedSeconds / 3600, 0.1),
-                            0
-                          ).toFixed(1)} kn`
-                        : "–"}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                  <Button
-                    label="Tracking speichern"
-                    icon="pi pi-save"
-                    className="w-full! border-none! bg-(--color-primary)! px-5! py-3! font-semibold! text-white! hover:bg-(--color-primary-strong)! sm:w-auto!"
-                    onClick={handleSaveTracking}
-                  />
-                  <Button
-                    label="Abbrechen"
-                    icon="pi pi-times"
-                    className="w-full! border border-slate-300! bg-white! px-5! py-3! font-semibold! text-slate-700! hover:bg-slate-50! sm:w-auto!"
-                    onClick={resetTracking}
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-slate-500">
-                  Starte hier eine GPS-Aufzeichnung. Sobald du speicherst, steht
-                  der Track im Formular &quot;Neuen Törn anlegen&quot; zur
-                  Auswahl bereit.
-                </p>
-                <Button
-                  label="Tracking starten"
-                  icon="pi pi-map-marker"
-                  className="mt-4! w-full! border-none! bg-(--color-primary)! px-5! py-3! font-semibold text-white! hover:bg-(--color-primary-strong)! sm:w-auto!"
-                  onClick={handleStartTracking}
-                />
-              </>
-            )}
-          </div>
-          <div className="rounded-2xl border border-slate-200 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
-              Aufgezeichnete Tracks
+        <div className="mt-4 flex flex-col gap-3">
+          {incomingDelegations.length === 0 ? (
+            <p className="text-xs text-slate-500">
+              Aktuell hast du keine Zugriffsrechte auf andere Profile.
             </p>
-            <div className="mt-3 flex flex-col gap-3">
-              {tracks.length === 0 ? (
-                <p className="text-xs text-slate-500">
-                  Noch keine GPS-Tracks gespeichert.
-                </p>
-              ) : (
-                tracks.map((track: GpsTrack) => (
-                  <div
-                    key={track.id}
-                    className="flex items-start justify-between gap-3 rounded-xl border border-slate-100 px-3 py-2"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">
-                        {track.title}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        {formatDurationMinutes(track.durationMinutes)} ·{" "}
-                        {track.distanceKm.toFixed(1)} km ·{" "}
-                        {new Date(track.startedAt).toLocaleString("de-DE", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
+          ) : (
+            incomingDelegations.map((access) => {
+              const owner = accounts.find(
+                (account) => account.id === access.ownerAccountId
+              );
+              return (
+                <div
+                  key={access.id}
+                  className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {owner?.name ?? "Unbekanntes Profil"}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {owner?.email ?? "Keine E-Mail hinterlegt"}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                      {access.canRead && (
+                        <Tag value="Lesen" severity="success" />
+                      )}
+                      {access.canWrite && (
+                        <Tag value="Schreiben" severity="warning" />
+                      )}
                     </div>
-                    <Button
-                      icon="pi pi-trash"
-                      rounded
-                      className="delete-icon-button"
-                      aria-label="Track löschen"
-                      onClick={() => removeTrack(track.id)}
-                    />
                   </div>
-                ))
-              )}
-            </div>
-          </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </Card>
 

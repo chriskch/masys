@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Button } from "primereact/button";
 import { Card } from "primereact/card";
 import { Avatar } from "primereact/avatar";
-import { Tag } from "primereact/tag";
 import {
   useDashboardStore,
   type DashboardStat,
@@ -89,36 +88,37 @@ export default function Home() {
               <Link
                 key={trip.id}
                 href={`/trips/${trip.id}`}
-                className="flex items-start justify-between rounded-xl border border-slate-200 px-4 py-3 transition-colors hover:border-[rgba(1,168,10,0.35)] hover:bg-[rgba(1,168,10,0.08)]"
+                className="flex flex-col gap-3 rounded-xl border border-slate-200 px-4 py-3 transition-colors hover:border-[rgba(1,168,10,0.35)] hover:bg-[rgba(1,168,10,0.08)] sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <p className="text-sm font-semibold text-slate-900">
                     {trip.title}
                   </p>
                   <p className="text-xs text-slate-500">{trip.date}</p>
-                  <div className="mt-2 flex items-center gap-4 text-xs text-slate-500">
-                    <span className="flex items-center gap-2">
-                      <i
-                        className="pi pi-route text-(--color-primary-strong)"
-                        aria-hidden
-                      />
-                      {trip.distance}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <i
-                        className="pi pi-clock text-(--color-accent-3)"
-                        aria-hidden
-                      />
-                      {trip.duration}
-                    </span>
-                  </div>
                 </div>
-                <Tag
-                  value={trip.status}
-                  severity={
-                    trip.status === "Abgeschlossen" ? "success" : "info"
-                  }
-                />
+                <div className="flex items-center gap-4 text-xs text-slate-500 sm:justify-end">
+                  <span className="flex items-center gap-2">
+                    <i
+                      className="pi pi-list text-(--color-primary-strong)"
+                      aria-hidden
+                    />
+                    {trip.sectionCount} Abschnitte
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <i
+                      className="pi pi-route text-(--color-primary-strong)"
+                      aria-hidden
+                    />
+                    {trip.distance}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <i
+                      className="pi pi-clock text-(--color-accent-3)"
+                      aria-hidden
+                    />
+                    {trip.duration}
+                  </span>
+                </div>
               </Link>
             ))}
           </div>

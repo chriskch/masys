@@ -1,6 +1,7 @@
 import type { DistanceRule, BonusRule } from "../../lib/stores/points-store";
 
 export type CrewMember = {
+  uid: string;
   name: string;
   role: string;
   isGuest: boolean;
@@ -14,6 +15,7 @@ export type TripSegment = {
   distanceRuleId: DistanceRule["id"] | null;
   distanceKm: number;
   bonuses: SegmentBonusEntry[];
+  crewMemberIds: string[];
 };
 
 export type SegmentBonusEntry = {
@@ -29,6 +31,7 @@ export type TripFormState = {
   endLocation: string;
   boat: string | null;
   crewMembers: CrewMember[];
+  lockCrewAcrossSegments: boolean;
   weather: string | null;
   notes: string;
   segments: TripSegment[];

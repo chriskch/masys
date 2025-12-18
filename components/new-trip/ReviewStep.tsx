@@ -3,9 +3,7 @@
 import { Card } from "primereact/card";
 import { Tag } from "primereact/tag";
 import type { TripFormState } from "../../app/new-trip/types";
-import type { GpsTrack } from "../../lib/stores/logbook-store";
 import type { DistanceRule, BonusRule } from "../../lib/stores/points-store";
-import { formatDurationMinutes } from "../../lib/stores/logbook-store";
 
 export type PointsBreakdownItem = {
   id: string;
@@ -18,7 +16,6 @@ type ReviewStepProps = {
   formData: TripFormState;
   pointsBreakdown: PointsBreakdownItem[];
   totalPoints: number;
-  selectedTracks: GpsTrack[];
   distanceRules: DistanceRule[];
   bonusRules: BonusRule[];
 };
@@ -27,7 +24,6 @@ export const ReviewStep = ({
   formData,
   pointsBreakdown,
   totalPoints,
-  selectedTracks,
   distanceRules,
   bonusRules,
 }: ReviewStepProps) => (
@@ -155,7 +151,7 @@ export const ReviewStep = ({
             ) : (
               formData.crewMembers.map((member) => (
                 <div
-                  key={`${member.name}-${member.role}`}
+                  key={member.uid}
                   className="flex items-center justify-between"
                 >
                   <span>{member.name}</span>
@@ -172,40 +168,6 @@ export const ReviewStep = ({
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 px-4 py-3">
-          <p className="text-xs uppercase tracking-wide text-slate-400">
-            Zugeordnete GPS-Tracks
-          </p>
-          {selectedTracks.length === 0 ? (
-            <p className="mt-2 text-xs text-slate-500">
-              Kein GPS-Track ausgewählt.
-            </p>
-          ) : (
-            <div className="mt-2 flex flex-col gap-3">
-              {selectedTracks.map((track) => (
-                <div
-                  key={track.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2"
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">
-                      {track.title}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {formatDurationMinutes(track.durationMinutes)} ·{" "}
-                      {track.distanceKm.toFixed(1)} km ·{" "}
-                      {new Date(track.startedAt).toLocaleDateString("de-DE", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </Card>
 

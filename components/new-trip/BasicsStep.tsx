@@ -7,7 +7,6 @@ import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { ToggleButton } from "primereact/togglebutton";
-import { MultiSelect } from "primereact/multiselect";
 import type { TripFormState } from "../../app/new-trip/types";
 import { useTripOptionsStore } from "../../lib/stores/trip-options-store";
 
@@ -15,10 +14,6 @@ type BasicsStepProps = {
   formData: TripFormState;
   hasCustomEndLocation: boolean;
   setHasCustomEndLocation: (value: boolean) => void;
-  selectedTrackIds: string[];
-  setSelectedTrackIds: Dispatch<SetStateAction<string[]>>;
-  trackOptions: { label: string; value: string }[];
-  tracksAvailable: boolean;
   onFormDataChange: Dispatch<SetStateAction<TripFormState>>;
 };
 
@@ -26,10 +21,6 @@ export const BasicsStep = ({
   formData,
   hasCustomEndLocation,
   setHasCustomEndLocation,
-  selectedTrackIds,
-  setSelectedTrackIds,
-  trackOptions,
-  tracksAvailable,
   onFormDataChange,
 }: BasicsStepProps) => {
   const { boatOptions, weatherOptions } = useTripOptionsStore((state) => ({
@@ -47,20 +38,20 @@ export const BasicsStep = ({
         setHasCustomEndLocation(false);
       }
     },
-    [hasCustomEndLocation, onFormDataChange, setHasCustomEndLocation],
+    [hasCustomEndLocation, onFormDataChange, setHasCustomEndLocation]
   );
 
   const handleEndLocationChange = useCallback(
     (nextValue: string) => {
       setHasCustomEndLocation(
-        nextValue.trim() !== "" && nextValue !== formData.startLocation,
+        nextValue.trim() !== "" && nextValue !== formData.startLocation
       );
       onFormDataChange((prev) => ({
         ...prev,
         endLocation: nextValue,
       }));
     },
-    [formData.startLocation, onFormDataChange, setHasCustomEndLocation],
+    [formData.startLocation, onFormDataChange, setHasCustomEndLocation]
   );
 
   return (
@@ -194,32 +185,9 @@ export const BasicsStep = ({
                 offLabel="Mitfahrt"
                 onIcon="pi pi-flag"
                 offIcon="pi pi-users"
-                className="border-none bg-slate-200 text-slate-700"
+                className="border-none text-white!"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="text-xs uppercase tracking-wide text-slate-400">
-              GPS-Track übernehmen
-            </label>
-            {!tracksAvailable ? (
-              <p className="mt-1 text-xs text-slate-500">
-                Noch keine Aufzeichnungen vorhanden. Starte ein Tracking im
-                Profil, um einen Track zuzuweisen.
-              </p>
-            ) : (
-              <MultiSelect
-                value={selectedTrackIds}
-                onChange={(e) =>
-                  setSelectedTrackIds((e.value as string[] | undefined) ?? [])
-                }
-                options={trackOptions}
-                display="chip"
-                placeholder="Track auswählen"
-                className="mt-1 w-full"
-              />
-            )}
           </div>
 
           <div>
