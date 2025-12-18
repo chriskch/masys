@@ -42,8 +42,6 @@ export function AppShell({ children }: AppShellProps) {
     setAccountId: state.setAccountId,
   }));
   const [profileSwitchVisible, setProfileSwitchVisible] = useState(false);
-  const [profileCompletionVisible, setProfileCompletionVisible] =
-    useState(false);
   const [profileCompletionForm, setProfileCompletionForm] = useState({
     firstName: "",
     lastName: "",
@@ -118,16 +116,12 @@ export function AppShell({ children }: AppShellProps) {
   }, [currentAccount]);
 
   useEffect(() => {
-    if (!needsProfileCompletion || !currentAccount) {
-      setProfileCompletionVisible(false);
-      return;
-    }
+    if (!needsProfileCompletion || !currentAccount) return;
     const nameParts = currentAccount.name?.trim().split(/\s+/) ?? [];
     const firstName = nameParts[0] ?? "";
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
     setProfileCompletionForm({ firstName, lastName });
     setProfileCompletionErrors({});
-    setProfileCompletionVisible(true);
   }, [needsProfileCompletion, currentAccount]);
 
   const handleProfileCompletionSave = () => {
@@ -140,7 +134,6 @@ export function AppShell({ children }: AppShellProps) {
     setProfileCompletionErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
     updateAccount(currentAccount.id, { name: `${firstName} ${lastName}` });
-    setProfileCompletionVisible(false);
   };
 
   useEffect(() => {
@@ -364,12 +357,13 @@ export function AppShell({ children }: AppShellProps) {
 
       <Dialog
         header="Profil vervollständigen"
-        visible={profileCompletionVisible}
+        visible={needsProfileCompletion}
         className="w-full! sm:w-96!"
         breakpoints={{ "960px": "75vw", "640px": "95vw" }}
         closable={false}
         dismissableMask={false}
         draggable={false}
+        onHide={() => {}}
       >
         <div className="flex flex-col gap-4">
           <p className="text-sm text-slate-500">
